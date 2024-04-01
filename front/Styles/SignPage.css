@@ -1,0 +1,71 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.logoimage1 img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    float: right;
+    margin-right: 340px;
+    margin-top: 10px;
+    vertical-align: top;
+}
+
+.logoimage2 img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    float: left;
+    margin-left: 340px;
+    margin-top: 10px;
+}
+
+/* .logoimage3 img {
+    width: 60px;
+    height: 60px;
+    display: block; /* Remove default inline spacing 
+    margin: 0 auto; /* Center the image horizontally */
+/* } */
+
+body {
+    background-color: rgb(211, 240, 230);
+}
+
+.container {
+    background-color: rgb(226, 223, 223);
+    width: 35%;
+    height: 55vh;
+    margin: 0 auto;
+    padding: 25px;
+    border-radius: 15px;
+    padding-top: 20px;
+}
+
+.btn {
+    width: 40%;
+    height: 35px;
+    background: rgb(73, 245, 245);
+    border: none;
+    border-radius: 30px;
+    box-shadow: bisque;
+    font-weight: 700;
+}
+
+btn :hover {
+    background-color: rgb(101, 255, 242);
+    color: rgb(1, 148, 148);
+}
+
+footer {
+    background-color: rgb(211, 240, 230); /* Set background color for footer */
+    padding: 20px; /* Add padding to the footer */
+    position: fixed; /* Position the footer at the bottom of the viewport */
+    width: 100%; /* Make the footer span the entire width of the viewport */
+    bottom: 0; /* Stick the footer to the bottom */
+    text-align: center; /* Center-align text within the footer */
+    color: rgb(85, 85, 85);
+  }
+
