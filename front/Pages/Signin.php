@@ -4,7 +4,7 @@ session_start(); // Start or resume a session
 // Database connection parameters
 $servername = "localhost";
 $usernam = "root";
-$pasword = "982468";
+$pasword = "";
 $dbname = "suivi_pfe";
 
 // Create connection

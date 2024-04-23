@@ -1,11 +1,9 @@
 
 <?php
-require_once 'PHPExcel/Classes/PHPExcel.php';
-
 // Connect to MySQL database
 $servername = "localhost";
 $username = "root";
-$password = "982468";
+$password = "";
 $dbname = "suivi_pfe";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
