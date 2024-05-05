@@ -21,12 +21,19 @@ CREATE TABLE IF NOT EXISTS Filieres (
     departement_id INT,
     FOREIGN KEY (departement_id) REFERENCES Departement(departement_id)
 );
+-- Create Niveau table
+CREATE TABLE IF NOT EXISTS Niveau (
+    niveau_id INT AUTO_INCREMENT PRIMARY KEY,
+    nom_niveau VARCHAR(100) NOT NULL,
+    filiere_id INT,
+    FOREIGN KEY (filiere_id) REFERENCES Filieres(filiere_id)
+);
 -- Create Speciality table
 CREATE TABLE IF NOT EXISTS Speciality (
     speciality_id INT AUTO_INCREMENT PRIMARY KEY,
     nom_speciality VARCHAR(100) NOT NULL,
-    filiere_id INT,
-    FOREIGN KEY (filiere_id) REFERENCES Filieres(filiere_id)
+    niveau_id INT,
+    FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id)
 );
 -- Create Etudiant table
 CREATE TABLE IF NOT EXISTS Etudiant (
@@ -36,16 +43,18 @@ CREATE TABLE IF NOT EXISTS Etudiant (
     n_inscription_etudiant VARCHAR(100) NOT NULL,
     birthday_etudiant Date Not NULL,
     email_etudiant VARCHAR(100) NOT NULL,
-    speciality_id INT,
-    FOREIGN KEY (speciality_id) REFERENCES Speciality(speciality_id)
+    niveau_id INT,
+    FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id)
 );
 -- Create Binome table
 CREATE TABLE IF NOT EXISTS Binome (
     binome_id INT AUTO_INCREMENT PRIMARY KEY,
     etudiant1_id INT NOT NULL,
     etudiant2_id INT NOT NULL,
+    niveau_id INT,
     FOREIGN KEY (etudiant1_id) REFERENCES Etudiant(etudiant_id),
-    FOREIGN KEY (etudiant2_id) REFERENCES Etudiant(etudiant_id)
+    FOREIGN KEY (etudiant2_id) REFERENCES Etudiant(etudiant_id),
+    FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id)
 );
 -- Create Enseignant table
 CREATE TABLE IF NOT EXISTS Enseignant (
@@ -56,8 +65,7 @@ CREATE TABLE IF NOT EXISTS Enseignant (
     N_telephone_enseignant VARCHAR(100) NOT NULL,
     type ENUM(
         'enseignant',
-        'chef_specialite',
-        'chef_departement'
+        'chef_specialite'
     ) NOT NULL,
     speciality_id INT,
     FOREIGN KEY (speciality_id) REFERENCES Speciality(speciality_id)
@@ -67,6 +75,9 @@ CREATE TABLE IF NOT EXISTS Theme (
     theme_id INT AUTO_INCREMENT PRIMARY KEY,
     title_theme VARCHAR(100) NOT NULL,
     description_theme TEXT NOT NULL,
+    objectif_theme TEXT NOT NULL,
+    outils_theme TEXT NOT NULL,
+    connaissances_theme TEXT NOT NULL,
     status ENUM(
         'non_valide',
         'en_attente',
@@ -76,7 +87,9 @@ CREATE TABLE IF NOT EXISTS Theme (
     speciality_id INT,
     enseignant_id INT,
     binome_id INT,
+    niveau_id INT,
     FOREIGN KEY (speciality_id) REFERENCES Speciality(speciality_id),
     FOREIGN KEY (enseignant_id) REFERENCES Enseignant(enseignant_id),
-    FOREIGN KEY (binome_id) REFERENCES Binome(binome_id)
+    FOREIGN KEY (binome_id) REFERENCES Binome(binome_id),
+    FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id)
 );

@@ -1,0 +1,18 @@
+<th>Id</th>
+<th>Nom</th>
+<th>Prenom</th>
+<th>Email</th>
+<th>N_tel</th>
+<th>Edit</th>
+
+
+<td><?php echo $i++; ?></td>
+<td><?php echo $row['nom_enseignant']; ?></td>
+<td><?php echo $row['prenom_enseignant']; ?></td>
+<td><?php echo $row['email_enseignant']; ?></td>
+<td><?php echo $row['N_telephone_enseignant']; ?></td>
+<td>
+    <a href="ChefS_Edit_ens.php?id=<?php echo $row['id']; ?>">Modifier</a>
+    <a href="ChefS_Delete_ens.php?id=<?php echo $row['id']; ?>">Supprimer</a>
+</td>
+
