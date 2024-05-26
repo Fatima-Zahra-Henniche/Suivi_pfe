@@ -1,30 +1,42 @@
-<?php require 'connect.php';
+<?php
+require 'connect.php';
 
 session_start();
 
-$type = 'enseignant';
-$sql = "SELECT nom_enseignant, prenom_enseignant, 'Enseignant' AS job FROM enseignant WHERE type = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $type);
-$stmt->execute();
-$result = $stmt->get_result();
+if (isset($_SESSION['ens_id'])) {
+    $ens_id = $_SESSION['ens_id'];
+    $type = 'enseignant';
 
+    $sql = "SELECT nom_enseignant, prenom_enseignant, 'Enseignant' AS job FROM enseignant WHERE type = ? AND enseignant_id = ?";
+    $stmt = $conn->prepare($sql);
 
-if ($result->num_rows > 0) {
-    // Output data of each row
-    while ($row = $result->fetch_assoc()) {
-        echo "<div class='toolbar'>";
-        echo "<span>" . $row["nom_enseignant"] . " " . $row["prenom_enseignant"] . "</span>"; // Corrected here
-        echo "<span>" . $row["job"] . "</span>";
-        echo "<span>Les Niveaux</span>";
-        echo "</div>";
+    if ($stmt) {
+        $stmt->bind_param("si", $type, $ens_id); // Bind type as string (s) and ens_id as integer (i)
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            // Output data of each row
+            while ($row = $result->fetch_assoc()) {
+                echo "<div class='toolbar'>";
+                echo "<span>" . $row["nom_enseignant"] . " " . $row["prenom_enseignant"] . "</span>";
+                echo "<span>" . $row["job"] . "</span>";
+                echo "<span>Les Niveaux</span>";
+                echo "</div>";
+            }
+        } else {
+            echo "0 results";
+        }
+
+        $stmt->close();
+    } else {
+        echo "Failed to prepare the SQL statement: " . $conn->error;
     }
+
+    $conn->close();
 } else {
-    echo "0 results";
+    echo "Enseignant ID not set in session.";
 }
-
-$conn->close();
-
 ?>
 
 
@@ -75,6 +87,9 @@ $conn->close();
                         <option value="2">M2</option>
                         <!-- Ajoutez d'autres options ici selon vos besoins -->
                     </select><br><br>
+
+                    <!-- Hidden input for ens_id -->
+                    <input type="hidden" id="ens_id" name="ens_id" value="<?php echo $_SESSION['ens_id']; ?>">
 
                     <input type="submit" value="Add Sujet">
                 </form>

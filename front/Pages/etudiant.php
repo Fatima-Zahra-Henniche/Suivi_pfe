@@ -3,19 +3,22 @@ require 'connect.php';
 
 session_start();
 
-$sql = "SELECT nom_etudiant, prenom_etudiant, 'etudiant' AS job FROM etudiant"; // Corrected here
+// Assuming $_SESSION['student_id'] contains the ID of the logged-in student
+$student_id = $_SESSION['etu_id'];
+
+// Adjust the SQL query to fetch data based on the logged-in student's ID
+$sql = "SELECT nom_etudiant, prenom_etudiant, 'etudiant' AS job FROM etudiant WHERE etudiant_id = $student_id";
 
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
-    // Output data of each row
-    while ($row = $result->fetch_assoc()) {
-        echo "<div class='toolbar'>";
-        echo "<span>" . $row["nom_etudiant"] . " " . $row["prenom_etudiant"] . "</span>";
-        echo "<span>" . $row["job"] . "</span>";
-        echo "<span>Les Niveaux</span>";
-        echo "</div>";
-    }
+    // Output data of the current student
+    $row = $result->fetch_assoc();
+
+    echo "<div class='toolbar'>";
+    echo "<span>" . $row["nom_etudiant"] . " " . $row["prenom_etudiant"] . "</span>";
+    echo "<span>" . $row["job"] . "</span>"; // Displaying the job designation
+    echo "</div>";
 } else {
     echo "0 results";
 }
@@ -23,6 +26,7 @@ if ($result->num_rows > 0) {
 $conn->close();
 
 ?>
+
 
 
 <!DOCTYPE html>

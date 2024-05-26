@@ -52,6 +52,14 @@ if ($result->num_rows > 0) {
         <button>informer</button>
     </div>
 
+    <!-- Home -->
+    <div class="Home">
+        <button><a href="ChefS_Liste_Theme_nom_valide.php"> Themes non valide </a></button>
+        <button>Liste des themes</button>
+    </div>
+
+
+
     <!-- Import EXCEL FILE -->
     <div id="studentModal" class="modal">
         <div class="modal-content">
