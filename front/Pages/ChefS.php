@@ -90,7 +90,6 @@ if ($result->num_rows > 0) {
         <button onclick="document.getElementById('teacherModal').style.display='block'">Importer Des Enseignants</button>
         <button><a href="ChefS_List_etu.php">Liste des etudiants</a></button>
         <button><a href="ChefS_List_ens.php">Liste des enseignants</a></button>
-        <!-- <button>Envoyer Formulaire</button> -->
     </div>
 
     <!-- Home -->
