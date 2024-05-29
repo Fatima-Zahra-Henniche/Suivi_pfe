@@ -31,11 +31,11 @@
 /* } */
 
 body {
-    background-color: rgb(211, 240, 230);
+    background-color: #BED1FC;
 }
 
 .container {
-    background-color: rgb(226, 223, 223);
+    background-color: #F1F8FF;
     width: 35%;
     height: 55vh;
     margin: 0 auto;
@@ -60,7 +60,7 @@ btn :hover {
 }
 
 footer {
-    background-color: rgb(211, 240, 230); /* Set background color for footer */
+    background-color: #BED1FC; /* Set background color for footer */
     padding: 20px; /* Add padding to the footer */
     position: fixed; /* Position the footer at the bottom of the viewport */
     width: 100%; /* Make the footer span the entire width of the viewport */

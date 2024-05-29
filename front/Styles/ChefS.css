@@ -4,6 +4,9 @@
     box-sizing: border-box;
 }
 
+body {
+  background-color: #E4E4E4;
+}
 
 .toolbar {
     display: grid;

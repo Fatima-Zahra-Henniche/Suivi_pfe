@@ -32,7 +32,7 @@
     }
 
     // Sélectionner les étudiants de la base de données
-    $rows = mysqli_query($conn, "SELECT * FROM etudiant WHERE niveau_id = 1");
+    $rows = mysqli_query($conn, "SELECT * FROM etudiant WHERE niveau_id = 2");
     if ($rows && mysqli_num_rows($rows) > 0) {
     ?>
         <table border="1">

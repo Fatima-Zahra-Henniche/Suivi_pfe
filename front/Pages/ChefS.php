@@ -9,13 +9,19 @@ $stmt->bind_param("s", $type);
 $stmt->execute();
 $result = $stmt->get_result();
 
+echo "<div class='navigation'>";
+echo "<ul>";
+echo "<li><a href='ChefS.php'>L3</a></li>";
+echo "<li><a href='ChefS_M2.php'>M2</a></li>";
+echo "</ul>";
+echo "</div>";
+
 if ($result->num_rows > 0) {
     // Output data of each row
     while ($row = $result->fetch_assoc()) {
         echo "<div class='toolbar'>";
         echo "<span>" . $row["nom_enseignant"] . " " . $row["prenom_enseignant"] . "</span>"; // Corrected here
         echo "<span>" . $row["job"] . "</span>";
-        echo "<span>Les Niveaux</span>";
         echo "</div>";
     }
 } else {
@@ -32,6 +38,42 @@ if ($result->num_rows > 0) {
     <title>PFE Admin</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link rel="stylesheet" href="../Styles/ChefS.css">
+    <style>
+        .navigation {
+            background-color: #333;
+            overflow: hidden;
+        }
+
+        .navigation ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navigation li {
+            float: left;
+        }
+
+        .navigation li a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        .navigation li a:hover {
+            background-color: #111;
+        }
+
+        .toolbar {
+            margin-top: 20px;
+        }
+
+        .toolbar span {
+            margin-right: 10px;
+        }
+    </style>
 </head>
 
 <body>
@@ -48,14 +90,13 @@ if ($result->num_rows > 0) {
         <button onclick="document.getElementById('teacherModal').style.display='block'">Importer Des Enseignants</button>
         <button><a href="ChefS_List_etu.php">Liste des etudiants</a></button>
         <button><a href="ChefS_List_ens.php">Liste des enseignants</a></button>
-        <button>Envoyer Formulaire</button>
-        <button>informer</button>
+        <!-- <button>Envoyer Formulaire</button> -->
     </div>
 
     <!-- Home -->
     <div class="Home">
         <button><a href="ChefS_Liste_Theme_nom_valide.php"> Themes non valide </a></button>
-        <button>Liste des themes</button>
+        <button><a href="Liste_Theme_L3.php">Liste des themes</a></button>
     </div>
 
 
@@ -80,7 +121,7 @@ if ($result->num_rows > 0) {
         $fileExtension = explode('.', $fileName);
         $fileExtension = strtolower(end($fileExtension));
 
-        $newFileName = date("Y.m.d") . " - " . date("h.i.s") . "." . $fileExtension;
+        $newFileName = date("d.m.Y") . " - " . date("h.i.s") . "." . $fileExtension;
 
         $targetDirectory = "uploads/" . $newFileName;
         if (!move_uploaded_file($_FILES["excel"]["tmp_name"], $targetDirectory)) {
@@ -92,14 +133,13 @@ if ($result->num_rows > 0) {
 
         $reader = new SpreadsheetReader($targetDirectory);
         foreach ($reader as $key => $row) {
-            $id = $row[0];
-            $nom = $row[1];
-            $prenom = $row[2];
-            $n_insc = $row[3];
-            $birthday = $row[4];
-            $email = $row[5];
-            $niveau = $row[6];
-            mysqli_query($conn, "INSERT INTO `etudiant`(`etudiant_id`,`nom_etudiant`, `prenom_etudiant`, `n_inscription_etudiant`,`birthday_etudiant`, `email_etudiant`,`niveau_id`) VALUES ('$id','$nom','$prenom','$n_insc','$birthday','$email','$niveau')");
+            $nom = $row[0];
+            $prenom = $row[1];
+            $n_insc = $row[2];
+            $birthday = $row[3];
+            $email = $row[4];
+            $niveau = $row[5];
+            mysqli_query($conn, "INSERT INTO `etudiant`(`nom_etudiant`, `prenom_etudiant`, `n_inscription_etudiant`,`birthday_etudiant`, `email_etudiant`,`niveau_id`) VALUES ('$nom','$prenom','$n_insc','$birthday','$email','$niveau')");
         }
 
         echo

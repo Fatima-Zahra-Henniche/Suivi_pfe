@@ -48,7 +48,7 @@ $stmt_enseignant->close();
 $stmt_chef->close();
 
 // If not enseignant or chef_specialite, then check if the user is an etudiant
-$sql = "SELECT * FROM etudiant WHERE n_inscription_etudiant=?";
+$sql = "SELECT e.*, n.nom_niveau FROM etudiant e JOIN niveau n ON e.niveau_id = n.niveau_id WHERE e.n_inscription_etudiant = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $username);
 $stmt->execute();
@@ -62,7 +62,16 @@ if ($result->num_rows > 0) {
     if ($password === $storedBirthday) {
         // Authentication successful
         $_SESSION['etu_id'] = $row['etudiant_id']; // Store etudiant_id in session
-        header("Location: etudiant.php");
+
+        // Check the level and redirect accordingly
+        if ($row['nom_niveau'] == 'L3') {
+            header("Location: etudiant.php");
+        } elseif ($row['nom_niveau'] == 'M2') {
+            header("Location: etu_M2.php");
+        } else {
+            // Default redirection or error if needed
+            header("Location: default_page.php");
+        }
         exit();
     } else {
         $_SESSION['username'] = $username; // Store username in session
@@ -72,6 +81,8 @@ if ($result->num_rows > 0) {
     // User not found
     echo "Invalid username or password"; // Notify that the username or password is invalid
 }
+?>
+
 
 // Close prepared statement and database connection for etudiant check
 $stmt->close();
