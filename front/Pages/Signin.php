@@ -37,6 +37,7 @@ if ($result_chef->num_rows > 0) {
     $row = $result_chef->fetch_assoc();
     $storedTele = $row['N_telephone_enseignant'];
     if ($password === $storedTele) {
+        $_SESSION['chef_id'] = $row['enseignant_id']; // Store enseignant_id in session
         // User is a chef_specialite, redirect to ChefS.php
         header("Location: ChefS.php");
         exit(); // Ensure no more output is sent
@@ -48,7 +49,7 @@ $stmt_enseignant->close();
 $stmt_chef->close();
 
 // If not enseignant or chef_specialite, then check if the user is an etudiant
-$sql = "SELECT e.*, n.nom_niveau FROM etudiant e JOIN niveau n ON e.niveau_id = n.niveau_id WHERE e.n_inscription_etudiant = ?";
+$sql = "SELECT * FROM etudiant WHERE n_inscription_etudiant = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $username);
 $stmt->execute();
@@ -62,16 +63,7 @@ if ($result->num_rows > 0) {
     if ($password === $storedBirthday) {
         // Authentication successful
         $_SESSION['etu_id'] = $row['etudiant_id']; // Store etudiant_id in session
-
-        // Check the level and redirect accordingly
-        if ($row['nom_niveau'] == 'L3') {
-            header("Location: etudiant.php");
-        } elseif ($row['nom_niveau'] == 'M2') {
-            header("Location: etu_M2.php");
-        } else {
-            // Default redirection or error if needed
-            header("Location: default_page.php");
-        }
+        header("Location: etudiant.php"); // Redirect to etudiant.php
         exit();
     } else {
         $_SESSION['username'] = $username; // Store username in session

@@ -58,23 +58,9 @@ CREATE TABLE IF NOT EXISTS Etudiant (
     birthday_etudiant DATE NOT NULL,
     email_etudiant VARCHAR(100) NOT NULL,
     niveau_id INT,
-    FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id)
-);
--- Create Binome table
-CREATE TABLE IF NOT EXISTS Binome (
-    binome_id INT AUTO_INCREMENT PRIMARY KEY,
-    etudiant1_id INT NOT NULL,
-    etudiant2_id INT NOT NULL,
-    enseignant_id INT,
-    status ENUM(
-        'en_attente',
-        'attribue'
-    ) NOT NULL,
-    niveau_id INT,
-    FOREIGN KEY (etudiant1_id) REFERENCES Etudiant(etudiant_id),
-    FOREIGN KEY (etudiant2_id) REFERENCES Etudiant(etudiant_id),
+    speciality_id INT,
     FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id),
-    FOREIGN KEY (enseignant_id) REFERENCES Enseignant(enseignant_id)
+    FOREIGN KEY (speciality_id) REFERENCES Speciality(speciality_id)
 );
 -- Create Theme table
 CREATE TABLE IF NOT EXISTS Theme (
@@ -83,6 +69,7 @@ CREATE TABLE IF NOT EXISTS Theme (
     description_theme TEXT NOT NULL,
     objectif_theme TEXT NOT NULL,
     outils_theme TEXT NOT NULL,
+    stage ENUM('oui', 'non') NOT NULL,
     connaissances_theme TEXT NOT NULL,
     status ENUM(
         'non_valide',
@@ -92,24 +79,45 @@ CREATE TABLE IF NOT EXISTS Theme (
     ) NOT NULL,
     speciality_id INT,
     enseignant_id INT,
-    binome_id INT,
     niveau_id INT,
     FOREIGN KEY (speciality_id) REFERENCES Speciality(speciality_id),
     FOREIGN KEY (enseignant_id) REFERENCES Enseignant(enseignant_id),
-    FOREIGN KEY (binome_id) REFERENCES Binome(binome_id),
     FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id)
+);
+-- Create Binome table
+CREATE TABLE IF NOT EXISTS Binome (
+    binome_id INT AUTO_INCREMENT PRIMARY KEY,
+    taux_memoire DECIMAL(5, 2) DEFAULT NULL,
+    taux_logiciel DECIMAL(5, 2) DEFAULT NULL,
+    etudiant1_id INT NOT NULL,
+    etudiant2_id INT NOT NULL,
+    enseignant_id INT,
+    status ENUM(
+        'en_attente',
+        'attribue'
+    ) NOT NULL,
+    niveau_id INT,
+    theme_id INT,
+    FOREIGN KEY (etudiant1_id) REFERENCES Etudiant(etudiant_id),
+    FOREIGN KEY (etudiant2_id) REFERENCES Etudiant(etudiant_id),
+    FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id),
+    FOREIGN KEY (theme_id) REFERENCES Theme(theme_id),
+    FOREIGN KEY (enseignant_id) REFERENCES Enseignant(enseignant_id)
 );
 -- Create Planning table
 CREATE TABLE IF NOT EXISTS Planning (
     planning_id INT AUTO_INCREMENT PRIMARY KEY,
     date_planning DATE NOT NULL,
     heure_debut TIME NOT NULL,
-    heure_fin TIME NOT NULL,
+    jury_01 INT NOT NULL,
+    jury_02 INT NOT NULL,
     salle VARCHAR(100) NOT NULL,
     theme_id INT,
     enseignant_id INT,
     binome_id INT,
     FOREIGN KEY (theme_id) REFERENCES Theme(theme_id),
     FOREIGN KEY (enseignant_id) REFERENCES Enseignant(enseignant_id),
-    FOREIGN KEY (binome_id) REFERENCES Binome(binome_id)
+    FOREIGN KEY (binome_id) REFERENCES Binome(binome_id),
+    FOREIGN KEY (jury_01) REFERENCES Enseignant(enseignant_id),
+    FOREIGN KEY (jury_02) REFERENCES Enseignant(enseignant_id)
 );

@@ -37,7 +37,6 @@ if (isset($_SESSION['chef_id'])) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -45,7 +44,7 @@ if (isset($_SESSION['chef_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <title>Liste des etudiants</title>
+    <title>Liste des Themes Attribue L3</title>
     <style>
         .toolbar {
             display: grid;
@@ -105,19 +104,10 @@ if (isset($_SESSION['chef_id'])) {
 
 <body>
     <div class="container">
-        <h1>Liste des etudiants :</h1>
-
-        <!-- Formulaire pour supprimer tous les étudiants de la même spécialité -->
-        <form method="POST" action="">
-            <button type="submit" name="delete_all" class="btn btn-light mb-2">Supprimer tous les étudiants de ma spécialité</button>
-        </form>
+        <h1>Liste des Themes Attribue</h1>
     </div>
-
-    </br>
-
     <?php
     require 'connect.php';
-
     $chef_id = $_SESSION['chef_id'];
 
     // Obtenir la spécialité du chef
@@ -126,61 +116,65 @@ if (isset($_SESSION['chef_id'])) {
     $chef_row = mysqli_fetch_assoc($chef_result);
     $chef_speciality_id = $chef_row['speciality_id'];
 
-    // Supprimer un étudiant si une requête de suppression individuelle est reçue
-    if (isset($_POST['delete_id'])) {
-        $delete_id = intval($_POST['delete_id']);
-        $delete_query = "DELETE FROM etudiant WHERE etudiant_id = $delete_id AND speciality_id = $chef_speciality_id";
-        mysqli_query($conn, $delete_query);
-    }
+    // Correct the SQL query to properly join the tables and select the necessary columns
+    $query = "SELECT t.theme_id, t.title_theme, e.nom_enseignant, b.taux_memoire, b.taux_logiciel,
+                    et1.nom_etudiant AS etudiant1_nom, et1.prenom_etudiant AS etudiant1_prenom,
+                    et2.nom_etudiant AS etudiant2_nom, et2.prenom_etudiant AS etudiant2_prenom
+                FROM theme t
+                JOIN enseignant e ON t.enseignant_id = e.enseignant_id
+                JOIN binome b ON t.theme_id = b.theme_id
+                JOIN etudiant et1 ON b.etudiant1_id = et1.etudiant_id
+                JOIN etudiant et2 ON b.etudiant2_id = et2.etudiant_id
+                WHERE t.status = 'attribue' AND t.speciality_id = $chef_speciality_id";
 
-    // Supprimer tous les étudiants de la même spécialité si une requête de suppression globale est reçue
-    if (isset($_POST['delete_all'])) {
-        $delete_all_query = "DELETE FROM etudiant WHERE speciality_id = $chef_speciality_id";
-        mysqli_query($conn, $delete_all_query);
-    }
+    $rows = mysqli_query($conn, $query);
 
-    // Sélectionner les étudiants de la même spécialité de la base de données
-    $rows = mysqli_query($conn, "SELECT * FROM etudiant WHERE speciality_id = $chef_speciality_id");
-    if ($rows && mysqli_num_rows($rows) > 0) {
+    // Check if the query was successful
+    if ($rows) {
+        if (mysqli_num_rows($rows) > 0) {
     ?>
-        <table class="table">
-            <thead>
+            <table class="table">
                 <tr>
                     <th>Id</th>
-                    <th>Nom</th>
-                    <th>Prenom</th>
-                    <th>N_insc</th>
-                    <th>Email</th>
-                    <th>Date_naissance</th>
-                    <th>Actions</th>
+                    <th>Le Titre</th>
+                    <th>Stage</th>
+                    <th>Encadrant</th>
+                    <th>Binome</th>
+                    <th>Taux D'avancement Memoire</th>
+                    <th>Taux D'avancement Logiciel</th>
                 </tr>
-            </thead>
-            <?php
-            $i = 1;
-            foreach ($rows as $row) :
-            ?>
-                <tbody>
+                <?php
+                $i = 1;
+                while ($row = mysqli_fetch_assoc($rows)) :
+                ?>
                     <tr>
                         <td><?php echo $i++; ?></td>
-                        <td><?php echo $row['nom_etudiant']; ?></td>
-                        <td><?php echo $row['prenom_etudiant']; ?></td>
-                        <td><?php echo $row['n_inscription_etudiant']; ?></td>
-                        <td><?php echo $row['email_etudiant']; ?></td>
-                        <td><?php echo $row['birthday_etudiant']; ?></td>
+                        <td><?php echo htmlspecialchars($row['title_theme']); ?></td>
+                        <td><?php echo htmlspecialchars($row['stage']); ?></td>
+                        <td><?php echo htmlspecialchars($row['nom_enseignant']); ?></td>
                         <td>
-                            <form method="POST" action="">
-                                <input type="hidden" name="delete_id" value="<?php echo $row['etudiant_id']; ?>">
-                                <button type="submit" class="btn btn-light mb-2">Supprimer</button>
-                            </form>
+                            <?php echo htmlspecialchars($row['etudiant1_nom']) . ' ' . htmlspecialchars($row['etudiant1_prenom']); ?><br>
+                            <?php echo htmlspecialchars($row['etudiant2_nom']) . ' ' . htmlspecialchars($row['etudiant2_prenom']); ?><br>
+                        </td>
+                        <td>
+                            <?php echo htmlspecialchars($row['taux_memoire']); ?>
+                        </td>
+                        <td>
+                            <?php echo htmlspecialchars($row['taux_logiciel']); ?>
                         </td>
                     </tr>
-                </tbody>
-            <?php endforeach; ?>
-        </table>
+                <?php endwhile; ?>
+            </table>
     <?php
+        } else {
+            echo "<div class=\"image-container\"><img src=\"../images/no_result.png\" alt=\"No results image\"></div>";
+        }
     } else {
-        echo "<div class=\"image-container\"><img src=\"../images/no_result.png\" alt=\"No results image\"></div>";
+        echo "Erreur dans la requête: " . mysqli_error($conn);
     }
+
+    // Close the database connection
+    mysqli_close($conn);
     ?>
 </body>
 

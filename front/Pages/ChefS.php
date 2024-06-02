@@ -2,32 +2,39 @@
 
 session_start();
 
-$type = 'chef_specialite';
-$sql = "SELECT nom_enseignant, prenom_enseignant, 'chef speciality' AS job FROM enseignant WHERE type = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $type);
-$stmt->execute();
-$result = $stmt->get_result();
+if (isset($_SESSION['chef_id'])) {
+    $chef_id = $_SESSION['chef_id'];
+    $type = 'chef_specialite';
+    $sql = "SELECT e.nom_enseignant, e.prenom_enseignant, e.speciality_id, s.nom_speciality, 'chef speciality' AS job FROM enseignant e join speciality s ON e.speciality_id = s.speciality_id WHERE e.type = ? AND e.enseignant_id = ?";
+    $stmt = $conn->prepare($sql);
 
-echo "<div class='navigation'>";
-echo "<ul>";
-echo "<li><a href='ChefS.php'>L3</a></li>";
-echo "<li><a href='ChefS_M2.php'>M2</a></li>";
-echo "</ul>";
-echo "</div>";
+    if ($stmt) {
+        $stmt->bind_param("si", $type, $chef_id); // Bind type as string (s) and ens_id as integer (i)
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-if ($result->num_rows > 0) {
-    // Output data of each row
-    while ($row = $result->fetch_assoc()) {
-        echo "<div class='toolbar'>";
-        echo "<span>" . $row["nom_enseignant"] . " " . $row["prenom_enseignant"] . "</span>"; // Corrected here
-        echo "<span>" . $row["job"] . "</span>";
-        echo "</div>";
+        if ($result->num_rows > 0) {
+            // Output data of each row
+            while ($row = $result->fetch_assoc()) {
+                echo "<div class='toolbar'>";
+                echo "<span>" . $row["nom_enseignant"] . " " . $row["prenom_enseignant"] . "</span>";
+                echo "<span>" . $row["job"] . " " . $row["nom_speciality"] . " </span>";
+                echo "<span class='logout'><a href='logout.php'>Déconnexion</a></span>"; // Modified to French "Déconnexion"
+                echo "</div>";
+            }
+        } else {
+            echo "0 results";
+        }
+
+        $stmt->close();
+    } else {
+        echo "Failed to prepare the SQL statement: " . $conn->error;
     }
+
+    // $conn->close();
 } else {
-    echo "0 results";
+    echo "Enseignant ID not set in session.";
 }
-// $conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -38,64 +45,28 @@ if ($result->num_rows > 0) {
     <title>PFE Admin</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link rel="stylesheet" href="../Styles/ChefS.css">
-    <style>
-        .navigation {
-            background-color: #333;
-            overflow: hidden;
-        }
-
-        .navigation ul {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .navigation li {
-            float: left;
-        }
-
-        .navigation li a {
-            display: block;
-            color: white;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
-
-        .navigation li a:hover {
-            background-color: #111;
-        }
-
-        .toolbar {
-            margin-top: 20px;
-        }
-
-        .toolbar span {
-            margin-right: 10px;
-        }
-    </style>
 </head>
 
 <body>
-    <!-- <div class="toolbar">
-        <span>Nom Prenom</span>
-        <span>job</span>
-        <span>Les Niveaux</span>
-    </div> -->
-    <!-- Menu Logo -->
-    <div class="vertical-toolbar1">
-        <button><img src="../images/imag.jpg" alt="Logo" class="logo" style="width: 20%; height: 25px; background:none;"></button>
-        <button onclick="document.getElementById('emailModal').style.display='block'"> Lancer la proposition </button>
-        <button onclick="document.getElementById('studentModal').style.display='block'">Importer Des Etudiants</button>
-        <button onclick="document.getElementById('teacherModal').style.display='block'">Importer Des Enseignants</button>
-        <button><a href="ChefS_List_etu.php">Liste des etudiants</a></button>
-        <button><a href="ChefS_List_ens.php">Liste des enseignants</a></button>
-    </div>
 
+    <!-- Menu -->
+    <div class="Menu">
+        <div>
+            <ul>
+                <li><button onclick="document.getElementById('emailModal').style.display='block'"> Lancer la proposition </button></li>
+                <li><button onclick="document.getElementById('studentModal').style.display='block'">Importer Des Etudiants</button></li>
+                <li><button onclick="document.getElementById('teacherModal').style.display='block'">Ajouter Un Enseignants</button></li>
+                <li><button onclick="document.getElementById('planingModal').style.display='block'">Saisir Un Planing</button></li>
+            </ul>
+        </div>
+    </div>
     <!-- Home -->
     <div class="Home">
+        <button><a href="ChefS_List_etu.php">Liste des etudiants</a></button>
+        <button><a href="ChefS_List_ens.php">Liste des enseignants</a></button>
         <button><a href="ChefS_Liste_Theme_nom_valide.php"> Themes non valide </a></button>
-        <button><a href="Liste_Theme_L3.php">Liste des themes</a></button>
+        <button><a href="Liste_Theme.php">Liste des themes</a></button>
+        <button><a href="Planning_Liste.php">Planning Liste</a></button>
     </div>
 
 
@@ -137,18 +108,43 @@ if ($result->num_rows > 0) {
             $n_insc = $row[2];
             $birthday = $row[3];
             $email = $row[4];
-            $niveau = $row[5];
-            mysqli_query($conn, "INSERT INTO `etudiant`(`nom_etudiant`, `prenom_etudiant`, `n_inscription_etudiant`,`birthday_etudiant`, `email_etudiant`,`niveau_id`) VALUES ('$nom','$prenom','$n_insc','$birthday','$email','$niveau')");
+            $niveauName = $row[5];
+            $specialityName = $row[6];
+
+            // Rechercher l'ID de niveau
+            $niveauQuery = mysqli_query($conn, "SELECT niveau_id FROM niveau WHERE nom_niveau ='$niveauName'");
+            if ($niveauRow = mysqli_fetch_assoc($niveauQuery)) {
+                $niveau = $niveauRow['niveau_id'];
+            } else {
+                echo "Niveau not found for name: $niveauName";
+                continue;
+            }
+
+            // Rechercher l'ID de speciality
+            $specialityQuery = mysqli_query($conn, "SELECT speciality_id FROM speciality WHERE nom_speciality ='$specialityName'");
+            if ($specialityRow = mysqli_fetch_assoc($specialityQuery)) {
+                $speciality = $specialityRow['speciality_id'];
+            } else {
+                echo "Speciality not found for name: $specialityName";
+                continue;
+            }
+
+            // Insertion des données dans la table etudiant
+            $insertQuery = "INSERT INTO `etudiant`(`nom_etudiant`, `prenom_etudiant`, `n_inscription_etudiant`, `birthday_etudiant`, `email_etudiant`, `niveau_id`, `speciality_id`) 
+                            VALUES ('$nom','$prenom','$n_insc','$birthday','$email','$niveau','$speciality')";
+            if (!mysqli_query($conn, $insertQuery)) {
+                echo "Error: " . mysqli_error($conn);
+            }
         }
 
-        echo
-        "
+        echo "
         <script>
         alert('Successfully Imported');
         document.location.href = '';
         </script>
         ";
     }
+
     ?>
 
     <!-- Send Email -->
@@ -207,13 +203,78 @@ if ($result->num_rows > 0) {
 
                     <label for="speciality">Speciality:</label>
                     <select id="speciality" name="speciality">
-                        <option value="1">Systeme informatique</option>
-                        <option value="2">Speciality 2</option>
+                        <option value="1">SI</option>
+                        <option value="2">IL</option>
+                        <option value="3">ISIA</option>
+                        <option value="4">RFIA</option>
                         <!-- Ajoutez d'autres options ici selon vos besoins -->
                     </select><br><br>
 
                     <input type="submit" value="Add Professor">
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Planing -->
+    <div id="planingModal" class="modl">
+        <div class="modl-content">
+            <span class="close" onclick="document.getElementById('planingModal').style.display='none'">X</span>
+            <div class="contain">
+                <h2>Saisir un planing</h2>
+                <form action="import_planing.php" method="post">
+                    <label for="theme">Theme:</label>
+                    <select id="theme" name="theme">
+                        <?php
+                        require 'connect.php'; // S'assurer que la connexion est incluse ici pour les requêtes
+                        $query = "SELECT title_theme FROM theme WHERE status = 'attribue'";
+                        $rows = mysqli_query($conn, $query);
+                        if ($rows && mysqli_num_rows($rows) > 0) {
+                            foreach ($rows as $row) {
+                                echo "<option value='" . htmlspecialchars($row['title_theme'], ENT_QUOTES) . "'>" . htmlspecialchars($row['title_theme'], ENT_QUOTES) . "</option>";
+                            }
+                        }
+                        ?>
+                    </select><br><br>
+
+                    <label for="jury1">Jury 1 :</label>
+                    <select id="jury1" name="jury1">
+                        <?php
+                        $query = "SELECT nom_enseignant, prenom_enseignant FROM enseignant";
+                        $rows = mysqli_query($conn, $query);
+                        if ($rows && mysqli_num_rows($rows) > 0) {
+                            foreach ($rows as $row) {
+                                echo "<option value='" . htmlspecialchars($row['nom_enseignant'] . " " . $row['prenom_enseignant'], ENT_QUOTES) . "'>" . htmlspecialchars($row['nom_enseignant'] . " " . $row['prenom_enseignant'], ENT_QUOTES) . "</option>";
+                            }
+                        }
+                        ?>
+                    </select><br><br>
+
+                    <label for="jury2">Jury 2 :</label>
+                    <select id="jury2" name="jury2">
+                        <?php
+                        $query = "SELECT nom_enseignant, prenom_enseignant FROM enseignant";
+                        $rows = mysqli_query($conn, $query);
+                        if ($rows && mysqli_num_rows($rows) > 0) {
+                            foreach ($rows as $row) {
+                                echo "<option value='" . htmlspecialchars($row['nom_enseignant'] . " " . $row['prenom_enseignant'], ENT_QUOTES) . "'>" . htmlspecialchars($row['nom_enseignant'] . " " . $row['prenom_enseignant'], ENT_QUOTES) . "</option>";
+                            }
+                        }
+                        ?>
+                    </select><br><br>
+
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" name="date"><br><br>
+
+                    <label for="heure">Heure:</label>
+                    <input type="time" id="heure" name="heure"><br><br>
+
+                    <label for="salle">Salle:</label>
+                    <input type="text" id="salle" name="salle"><br><br>
+
+                    <input type="submit" value="Add Planing">
+                </form>
+
             </div>
         </div>
     </div>

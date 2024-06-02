@@ -1,11 +1,106 @@
+<?php require 'connect.php';
+
+session_start();
+
+if (isset($_SESSION['chef_id'])) {
+    $chef_id = $_SESSION['chef_id'];
+    $type = 'chef_specialite';
+    $sql = "SELECT e.nom_enseignant, e.prenom_enseignant, e.speciality_id, s.nom_speciality, 'chef speciality' AS job FROM enseignant e join speciality s ON e.speciality_id = s.speciality_id WHERE e.type = ? AND e.enseignant_id = ?";
+    $stmt = $conn->prepare($sql);
+
+    if ($stmt) {
+        $stmt->bind_param("si", $type, $chef_id); // Bind type as string (s) and ens_id as integer (i)
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            // Output data of each row
+            while ($row = $result->fetch_assoc()) {
+                echo "<div class='toolbar'>";
+                echo "<span>" . $row["nom_enseignant"] . " " . $row["prenom_enseignant"] . "</span>";
+                echo "<span>" . $row["job"] . " " . $row["nom_speciality"] . " </span>";
+                echo "<span class='logout'><a href='logout.php'>Déconnexion</a></span>"; // Modified to French "Déconnexion"
+                echo "</div>";
+            }
+        } else {
+            echo "0 results";
+        }
+
+        $stmt->close();
+    } else {
+        echo "Failed to prepare the SQL statement: " . $conn->error;
+    }
+
+    // $conn->close();
+} else {
+    echo "Enseignant ID not set in session.";
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <title>Liste des enseignants</title>
     <style>
+        .toolbar {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr) auto;
+            /* Updated to accommodate the logout button */
+            align-items: center;
+            background-color: #BED1FC;
+            padding: 10px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            /* Added box shadow for better visibility */
+        }
+
+        .toolbar .logout {
+            justify-self: end;
+            /* Aligns the logout button to the end of the grid */
+        }
+
+        .toolbar a {
+            color: #333;
+            /* Adjusted link color */
+            text-decoration: none;
+            padding: 5px 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .toolbar a:hover {
+            background-color: #333;
+            color: #BED1FC;
+        }
+
+        .container {
+            padding-top: 50px;
+        }
+
+        /* Set the width and height of the image */
+        .image-container {
+            text-align: center;
+            /* Center the image horizontally */
+        }
+
+        .image-container img {
+            width: 40%;
+            /* Adjust as needed */
+            height: 55%;
+            margin: 0 auto;
+            margin-top: 40px;
+            /* Center the image horizontally */
+        }
+
         /* Modal styles */
         .modal {
             display: none;
@@ -50,10 +145,12 @@
 </head>
 
 <body>
-    <h1>Liste des enseignants</h1>
+    <div class="container">
+        <h1>Liste des enseignants</h1>
+    </div>
     <?php
     require 'connect.php';
-    $rows = mysqli_query($conn, "SELECT * FROM enseignant");
+    $rows = mysqli_query($conn, "SELECT * FROM enseignant WHERE type = 'enseignant'");
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'delete') {
         $enseignant_id = intval($_POST['enseignant_id']);
@@ -68,38 +165,42 @@
 
     if ($rows) {
     ?>
-        <table border="1">
-            <tr>
-                <th>Id</th>
-                <th>Nom</th>
-                <th>Prenom</th>
-                <th>Email</th>
-                <th>N_tel</th>
-                <th>Delete</th>
-            </tr>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nom</th>
+                    <th>Prenom</th>
+                    <th>Email</th>
+                    <th>N_tel</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
             <?php
             $i = 1;
             foreach ($rows as $row) :
             ?>
-                <tr>
-                    <td><?php echo $i++; ?></td>
-                    <td><?php echo htmlspecialchars($row['nom_enseignant']); ?></td>
-                    <td><?php echo htmlspecialchars($row['prenom_enseignant']); ?></td>
-                    <td><?php echo htmlspecialchars($row['email_enseignant']); ?></td>
-                    <td><?php echo htmlspecialchars($row['N_telephone_enseignant']); ?></td>
-                    <td>
-                        <form class="delete-form" action="ChefS_List_ens.php" method="post">
-                            <input type="hidden" name="enseignant_id" value="<?php echo $row['enseignant_id']; ?>">
-                            <input type="hidden" name="action" value="delete">
-                            <button type="button" onclick="openModal(this)">Delete</button>
-                        </form>
-                    </td>
-                </tr>
+                <tbody>
+                    <tr>
+                        <td><?php echo $i++; ?></td>
+                        <td><?php echo htmlspecialchars($row['nom_enseignant']); ?></td>
+                        <td><?php echo htmlspecialchars($row['prenom_enseignant']); ?></td>
+                        <td><?php echo htmlspecialchars($row['email_enseignant']); ?></td>
+                        <td><?php echo htmlspecialchars($row['N_telephone_enseignant']); ?></td>
+                        <td>
+                            <form class="delete-form" action="ChefS_List_ens.php" method="post">
+                                <input type="hidden" name="enseignant_id" value="<?php echo $row['enseignant_id']; ?>">
+                                <input type="hidden" name="action" value="delete">
+                                <button type="button" onclick="openModal(this)" class="btn btn-light mb-2">Supprimer</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
             <?php endforeach; ?>
         </table>
     <?php
     } else {
-        echo "Aucun résultat trouvé.";
+        echo "<div class=\"image-container\"><img src=\"../images/no_result.png\" alt=\"No results image\"></div>";
     }
     ?>
 

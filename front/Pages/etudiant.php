@@ -66,16 +66,6 @@ $conn->close();
                     <li><a href="etudiant.php">Planning</a></li>
                 </ul>
             </div>
-            <div class="main">
-                <h2>Profile</h2>
-                <div class="profile">
-                    <div class="profile-info">
-                        <h3>Informations Personnelles</h3>
-                        <p><strong>Nom:</strong> <?php echo $row["nom_etudiant"]; ?></p>
-                        <p><strong>Prenom:</strong> <?php echo $row["prenom_etudiant"]; ?></p>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 

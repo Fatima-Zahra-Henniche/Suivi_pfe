@@ -56,8 +56,11 @@ if (isset($_SESSION['ens_id'])) {
         <span>job</span>
         <span>Les Niveaux</span>
     </div> -->
-    <div class="addTheme">
+    <div>
         <button onclick="document.getElementById('ThemModal').style.display='block'">Add +</button>
+        <button><a href="Liste_demande.php"> Liste des demandes </a></button>
+        <button><a href="Liste_Theme_L3.php"> Liste des Themes L3</a></button>
+        <button><a href="Liste_Theme_M2.php"> Liste des Themes M2</a></button>
     </div>
 
     <div id="ThemModal" class="modal">
@@ -81,10 +84,24 @@ if (isset($_SESSION['ens_id'])) {
                     <label for="connaissances">Les Connaissances:</label>
                     <input type="text" id="connaissances" name="connaissances"><br><br>
 
+                    <label for="stage">Stage</label>
+                    <select id="stage" name="stage">
+                        <option value="1">oui</option>
+                        <option value="0">non</option>
+                    </select><br>
+
                     <label for="niveau">Niveau:</label>
                     <select id="niveau" name="niveau">
                         <option value="1">L3</option>
                         <option value="2">M2</option>
+                    </select><br>
+
+                    <label for="Speciality">Speciality:</label>
+                    <select id="Speciality" name="Speciality">
+                        <option value="1">SI</option>
+                        <option value="2">IL</option>
+                        <option value="3">ISIA</option>
+                        <option value="4">RFIA</option>
                         <!-- Ajoutez d'autres options ici selon vos besoins -->
                     </select><br><br>
 

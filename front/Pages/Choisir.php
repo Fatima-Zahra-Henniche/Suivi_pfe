@@ -3,7 +3,7 @@ require 'connect.php';
 
 session_start();
 
-// Assuming $_SESSION['student_id'] contains the ID of the logged-in student
+// Assuming $_SESSION['etu_id'] contains the ID of the logged-in student
 $student_id = $_SESSION['etu_id'];
 
 // Adjust the SQL query to fetch data based on the logged-in student's ID
@@ -12,33 +12,43 @@ $sql = "SELECT
             e.prenom_etudiant, 
             e.niveau_id, 
             n.nom_niveau,
-            'etudiant' AS job 
-            FROM 
-                etudiant e
-            JOIN 
-                niveau n ON e.niveau_id = n.niveau_id 
-            WHERE 
-                e.etudiant_id = $student_id
-            ";
+            'etudiant' AS job,
+            e.speciality_id
+        FROM 
+            etudiant e
+        JOIN 
+            niveau n ON e.niveau_id = n.niveau_id 
+        WHERE 
+            e.etudiant_id = $student_id";
 
-
+// Execute the query
 $result = $conn->query($sql);
 
+// Check for errors
+if (!$result) {
+    // Query execution failed, print error and exit
+    echo "Error executing query: " . mysqli_error($conn);
+    exit;
+}
+
+// Check if any rows were returned
 if ($result->num_rows > 0) {
     // Output data of the current student
     $row = $result->fetch_assoc();
+    $student_specialty_id = $row['speciality_id'];
 
     echo "<div class='toolbar'>";
-    echo "<span>" . $row["nom_etudiant"] . " " . $row["prenom_etudiant"] . "</span>";
-    echo "<span>" . $row["job"] . $row["nom_niveau"] . "</span>"; // Displaying the job designation
+    echo "<span>" . htmlspecialchars($row["nom_etudiant"]) . " " . htmlspecialchars($row["prenom_etudiant"]) . "</span>";
+    echo "<span>" . htmlspecialchars($row["job"]) . " " . htmlspecialchars($row["nom_niveau"]) . "</span>"; // Displaying the job designation
     echo "<span><a href='logout.php'>Déconnexion</a></span>";
     echo "</div>";
 } else {
-    echo "0 results";
+    echo "0 results"; // This line indicates that no matching student was found, adjust if necessary
+    exit;
 }
 
-$conn->close();
 
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -46,7 +56,8 @@ $conn->close();
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <title>Choisir Un Sujet</title>
     <style>
         /* Modal styles */
@@ -127,8 +138,8 @@ $conn->close();
                     $niveau_id = $row['niveau_id'];
 
                     // Insérer la demande d'encadrement dans la table binome
-                    $insert_query = "INSERT INTO binome (enseignant_id, etudiant1_id, etudiant2_id, niveau_id, status) 
-                                     VALUES ('$encadrant_id', '$etudiant1_id', '$etudiant2_id', '$niveau_id', 'en_attente')";
+                    $insert_query = "INSERT INTO binome (enseignant_id, etudiant1_id, etudiant2_id, niveau_id, theme_id, status, date_created) 
+                                     VALUES ('$encadrant_id', '$etudiant1_id', '$etudiant2_id', '$niveau_id', '$theme_id', 'en_attente', NOW()";
 
                     if (mysqli_query($conn, $insert_query)) {
                         echo "Demande d'encadrement soumise avec succès.";
@@ -149,16 +160,17 @@ $conn->close();
     $query = "SELECT t.*, e.nom_enseignant 
               FROM theme t
               JOIN enseignant e ON t.enseignant_id = e.enseignant_id
-              WHERE t.status = 'en_attente' AND t.niveau_id = 1";
+              WHERE t.status = 'en_attente' AND t.speciality_id = $student_specialty_id";
 
     $rows = mysqli_query($conn, $query);
     if ($rows) {
         if (mysqli_num_rows($rows) > 0) {
     ?>
-            <table border="1">
+            <table class="table">
                 <tr>
                     <th>Id</th>
                     <th>Titre</th>
+                    <th>Stage</th>
                     <th>Encadrant</th>
                     <th>Details</th>
                 </tr>
@@ -169,6 +181,7 @@ $conn->close();
                     <tr>
                         <td><?php echo $i++; ?></td>
                         <td><?php echo htmlspecialchars($row['title_theme']); ?></td>
+                        <td><?php echo htmlspecialchars($row['stage']); ?></td>
                         <td><?php echo htmlspecialchars($row['nom_enseignant']); ?></td>
                         <td><button onclick="showModal(<?php echo htmlspecialchars(json_encode($row)); ?>)">Details</button></td>
                     </tr>
