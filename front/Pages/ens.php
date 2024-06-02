@@ -21,7 +21,6 @@ if (isset($_SESSION['ens_id'])) {
                 echo "<div class='toolbar'>";
                 echo "<span>" . $row["nom_enseignant"] . " " . $row["prenom_enseignant"] . "</span>";
                 echo "<span>" . $row["job"] . "</span>";
-                echo "<span>Les Niveaux</span>";
                 echo "</div>";
             }
         } else {
@@ -86,8 +85,8 @@ if (isset($_SESSION['ens_id'])) {
 
                     <label for="stage">Stage</label>
                     <select id="stage" name="stage">
-                        <option value="1">oui</option>
-                        <option value="0">non</option>
+                        <option value="oui">Oui</option>
+                        <option value="non">Non</option>
                     </select><br>
 
                     <label for="niveau">Niveau:</label>

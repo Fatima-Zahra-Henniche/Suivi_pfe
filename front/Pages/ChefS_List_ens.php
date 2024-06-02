@@ -163,7 +163,7 @@ if (isset($_SESSION['chef_id'])) {
         exit();
     }
 
-    if ($rows) {
+    if ($rows->num_rows > 0) {
     ?>
         <table class="table">
             <thead>

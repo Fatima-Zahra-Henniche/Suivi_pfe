@@ -148,33 +148,37 @@ if (isset($_SESSION['chef_id'])) {
     ?>
 
     <!-- Send Email -->
-    <div id="emailModal" class="model">
-        <div class="model-contant">
+    <div id="emailModal" class="modal">
+        <div class="modal-content">
             <span class="close" onclick="document.getElementById('emailModal').style.display='none'">X</span>
-            <div class="contant">
-                <p> Do you really want to start the propositions </p>
-                <p> by click on the botton below you agree to send emails to the professors telling them that they can start posting there themes </p>
+            <div class="content">
+                <p>Do you really want to start the propositions?</p>
+                <p>By clicking on the button below, you agree to send emails to the professors telling them that they can start posting their themes.</p>
                 <button id="sendEmailButton">Send Email to Enseignants</button>
             </div>
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
             $("#sendEmailButton").click(function() {
                 $.ajax({
-                    url: 'sendEmail.php',
+                    url: 'Send_email.php', // Ensure this path is correct
                     type: 'POST',
                     success: function(response) {
                         alert(response);
+                        document.getElementById('emailModal').style.display = 'none';
                     },
                     error: function(xhr, status, error) {
                         console.error(xhr.responseText); // Log any errors to console
+                        alert('Error sending email. Please try again.');
                     }
                 });
             });
         });
     </script>
+
 
     <!-- Import teacher -->
     <div id="teacherModal" class="modl">
@@ -198,7 +202,7 @@ if (isset($_SESSION['chef_id'])) {
                     <label for="type">Type:</label>
                     <select id="type" name="type">
                         <option value="enseignant">Enseignant</option>
-                        <option value="chef_speciality">chef_specialite</option>
+                        <option value="chef_specialite">Chef_speciality</option>
                     </select><br><br>
 
                     <label for="speciality">Speciality:</label>

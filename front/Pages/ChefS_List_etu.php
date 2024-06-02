@@ -56,6 +56,7 @@ if (isset($_SESSION['chef_id'])) {
             padding: 10px;
             position: fixed;
             width: 100%;
+            height: 9%;
             top: 0;
             z-index: 1000;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -83,7 +84,7 @@ if (isset($_SESSION['chef_id'])) {
         }
 
         .container {
-            padding-top: 50px;
+            padding-top: 60px;
         }
 
         /* Set the width and height of the image */
