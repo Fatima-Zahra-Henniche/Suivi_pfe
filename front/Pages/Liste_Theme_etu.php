@@ -1,40 +1,45 @@
-<?php require 'connect.php';
+<?php
+require 'connect.php';
 
 session_start();
 
-if (isset($_SESSION['chef_id'])) {
-    $chef_id = $_SESSION['chef_id'];
-    $type = 'chef_specialite';
-    $sql = "SELECT e.nom_enseignant, e.prenom_enseignant, e.speciality_id, s.nom_speciality, 'chef speciality' AS job FROM enseignant e join speciality s ON e.speciality_id = s.speciality_id WHERE e.type = ? AND e.enseignant_id = ?";
-    $stmt = $conn->prepare($sql);
+// Assuming $_SESSION['student_id'] contains the ID of the logged-in student
+$student_id = $_SESSION['etu_id'];
 
-    if ($stmt) {
-        $stmt->bind_param("si", $type, $chef_id); // Bind type as string (s) and ens_id as integer (i)
-        $stmt->execute();
-        $result = $stmt->get_result();
+// Adjust the SQL query to fetch data based on the logged-in student's ID
+$sql = "SELECT 
+            e.nom_etudiant, 
+            e.prenom_etudiant, 
+            e.speciality_id, 
+            s.nom_speciality,
+            'Etudiant' AS job 
+            FROM 
+                etudiant e
+            JOIN 
+                speciality s ON e.speciality_id = s.speciality_id 
+            WHERE 
+                e.etudiant_id = $student_id
+            ";
 
-        if ($result->num_rows > 0) {
-            // Output data of each row
-            while ($row = $result->fetch_assoc()) {
-                echo "<div class='toolbar'>";
-                echo "<span>" . $row["nom_enseignant"] . " " . $row["prenom_enseignant"] . "</span>";
-                echo "<span>" . $row["job"] . " " . $row["nom_speciality"] . " </span>";
-                echo "<span class='logout'><a href='logout.php'>Déconnexion</a></span>"; // Modified to French "Déconnexion"
-                echo "</div>";
-            }
-        } else {
-            echo "0 results";
-        }
 
-        $stmt->close();
-    } else {
-        echo "Failed to prepare the SQL statement: " . $conn->error;
-    }
+$result = $conn->query($sql);
 
-    // $conn->close();
+if ($result->num_rows > 0) {
+    // Output data of the current student
+    $row = $result->fetch_assoc();
+
+    echo "<div class='toolbar'>";
+    echo "<span>" . $row["nom_etudiant"] . " " . $row["prenom_etudiant"] . "</span>";
+    echo "<span>" . $row["job"] . " " . $row["nom_speciality"] . "</span>"; // Displaying the job designation
+    echo "<span class'logout' ><a href='logout.php'>Déconnexion</a></span>";
+    echo "</div>";
 } else {
-    echo "Enseignant ID not set in session.";
+    echo "0 results";
 }
+
+
+$conn->close();
+
 ?>
 
 <!DOCTYPE html>
@@ -108,16 +113,16 @@ if (isset($_SESSION['chef_id'])) {
     </div>
     <?php
     require 'connect.php';
-    $chef_id = $_SESSION['chef_id'];
+    $etudiant_id = $_SESSION['etu_id'];
 
-    // Obtenir la spécialité du chef
-    $chef_query = "SELECT speciality_id FROM enseignant WHERE enseignant_id = $chef_id";
-    $chef_result = mysqli_query($conn, $chef_query);
-    $chef_row = mysqli_fetch_assoc($chef_result);
-    $chef_speciality_id = $chef_row['speciality_id'];
+    // Obtenir la spécialité du etudiant
+    $etudiant_query = "SELECT speciality_id FROM etudiant WHERE etudiant_id = $etudiant_id";
+    $etudiant_result = mysqli_query($conn, $etudiant_query);
+    $etudiant_row = mysqli_fetch_assoc($etudiant_result);
+    $etudiant_speciality_id = $etudiant_row['speciality_id'];
 
     // Correct the SQL query to properly join the tables and select the necessary columns
-    $query = "SELECT t.theme_id, t.stage, t.title_theme, e.nom_enseignant, b.taux_memoire, b.taux_logiciel,
+    $query = "SELECT t.theme_id, t.stage, t.title_theme, e.nom_enseignant, 
                     et1.nom_etudiant AS etudiant1_nom, et1.prenom_etudiant AS etudiant1_prenom,
                     et2.nom_etudiant AS etudiant2_nom, et2.prenom_etudiant AS etudiant2_prenom
                 FROM theme t
@@ -125,7 +130,7 @@ if (isset($_SESSION['chef_id'])) {
                 JOIN binome b ON t.theme_id = b.theme_id
                 JOIN etudiant et1 ON b.etudiant1_id = et1.etudiant_id
                 JOIN etudiant et2 ON b.etudiant2_id = et2.etudiant_id
-                WHERE t.status = 'attribue' AND t.speciality_id = $chef_speciality_id";
+                WHERE t.status = 'attribue' AND t.speciality_id = $etudiant_speciality_id";
 
     $rows = mysqli_query($conn, $query);
 
@@ -140,8 +145,6 @@ if (isset($_SESSION['chef_id'])) {
                     <th>Stage</th>
                     <th>Encadrant</th>
                     <th>Binome</th>
-                    <th>Taux D'avancement Memoire</th>
-                    <th>Taux D'avancement Logiciel</th>
                 </tr>
                 <?php
                 $i = 1;
@@ -155,12 +158,6 @@ if (isset($_SESSION['chef_id'])) {
                         <td>
                             <?php echo htmlspecialchars($row['etudiant1_nom']) . ' ' . htmlspecialchars($row['etudiant1_prenom']); ?><br>
                             <?php echo htmlspecialchars($row['etudiant2_nom']) . ' ' . htmlspecialchars($row['etudiant2_prenom']); ?><br>
-                        </td>
-                        <td>
-                            <?php echo htmlspecialchars($row['taux_memoire']); ?>
-                        </td>
-                        <td>
-                            <?php echo htmlspecialchars($row['taux_logiciel']); ?>
                         </td>
                     </tr>
                 <?php endwhile; ?>

@@ -1,6 +1,5 @@
 <?php
 require 'connect.php';
-
 session_start();
 
 // Assuming $_SESSION['etu_id'] contains the ID of the logged-in student
@@ -12,7 +11,7 @@ $sql = "SELECT
             e.prenom_etudiant, 
             e.niveau_id, 
             n.nom_niveau,
-            'etudiant' AS job,
+            'Etudiant' AS job,
             e.speciality_id
         FROM 
             etudiant e
@@ -40,13 +39,12 @@ if ($result->num_rows > 0) {
     echo "<div class='toolbar'>";
     echo "<span>" . htmlspecialchars($row["nom_etudiant"]) . " " . htmlspecialchars($row["prenom_etudiant"]) . "</span>";
     echo "<span>" . htmlspecialchars($row["job"]) . " " . htmlspecialchars($row["nom_niveau"]) . "</span>"; // Displaying the job designation
-    echo "<span><a href='logout.php'>Déconnexion</a></span>";
+    echo "<span class='logout'><a href='logout.php'>Déconnexion</a></span>";
     echo "</div>";
 } else {
     echo "0 results"; // This line indicates that no matching student was found, adjust if necessary
     exit;
 }
-
 
 $conn->close();
 ?>
@@ -60,7 +58,43 @@ $conn->close();
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <title>Choisir Un Sujet</title>
     <style>
-        /* Modal styles */
+        .toolbar {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr) auto;
+            align-items: center;
+            background-color: #BED1FC;
+            padding: 10px;
+            position: fixed;
+            width: 100%;
+            height: 8%;
+            top: 0;
+            left: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .toolbar .logout {
+            justify-self: end;
+            padding-right: 15px;
+        }
+
+        .toolbar a {
+            color: #333;
+            text-decoration: none;
+            padding: 5px 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .toolbar a:hover {
+            background-color: #333;
+            color: #BED1FC;
+        }
+
+        .container {
+            margin-top: 60px;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -99,7 +133,9 @@ $conn->close();
 </head>
 
 <body>
-    <h1>Liste Des Themes en attente</h1>
+    <div class="container">
+        <h1>La Liste Des Themes en attente :</h1>
+    </div>
     <?php
     require 'connect.php';
 
@@ -139,7 +175,7 @@ $conn->close();
 
                     // Insérer la demande d'encadrement dans la table binome
                     $insert_query = "INSERT INTO binome (enseignant_id, etudiant1_id, etudiant2_id, niveau_id, theme_id, status, date_created) 
-                                     VALUES ('$encadrant_id', '$etudiant1_id', '$etudiant2_id', '$niveau_id', '$theme_id', 'en_attente', NOW()";
+                                     VALUES ('$encadrant_id', '$etudiant1_id', '$etudiant2_id', '$niveau_id', '$theme_id', 'en_attente', NOW())";
 
                     if (mysqli_query($conn, $insert_query)) {
                         echo "Demande d'encadrement soumise avec succès.";

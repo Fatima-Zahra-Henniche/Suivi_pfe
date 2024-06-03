@@ -1,15 +1,17 @@
-<?php require 'connect.php';
+<?php
+require 'connect.php';
 
 session_start();
 
 if (isset($_SESSION['chef_id'])) {
     $chef_id = $_SESSION['chef_id'];
     $type = 'chef_specialite';
-    $sql = "SELECT e.nom_enseignant, e.prenom_enseignant, e.speciality_id, s.nom_speciality, 'chef speciality' AS job FROM enseignant e join speciality s ON e.speciality_id = s.speciality_id WHERE e.type = ? AND e.enseignant_id = ?";
+
+    $sql = "SELECT e.nom_enseignant, e.prenom_enseignant, e.speciality_id, s.nom_speciality, 'chef specialite' AS job FROM enseignant e JOIN speciality s ON e.speciality_id = s.speciality_id WHERE e.type = ? AND e.enseignant_id = ?";
     $stmt = $conn->prepare($sql);
 
     if ($stmt) {
-        $stmt->bind_param("si", $type, $chef_id); // Bind type as string (s) and ens_id as integer (i)
+        $stmt->bind_param("si", $type, $chef_id);
         $stmt->execute();
         $result = $stmt->get_result();
 
@@ -19,7 +21,7 @@ if (isset($_SESSION['chef_id'])) {
                 echo "<div class='toolbar'>";
                 echo "<span>" . $row["nom_enseignant"] . " " . $row["prenom_enseignant"] . "</span>";
                 echo "<span>" . $row["job"] . " " . $row["nom_speciality"] . " </span>";
-                echo "<span class='logout'><a href='logout.php'>Déconnexion</a></span>"; // Modified to French "Déconnexion"
+                echo "<span class='logout'><a href='logout.php'>Déconnexion</a></span>";
                 echo "</div>";
             }
         } else {
@@ -27,15 +29,62 @@ if (isset($_SESSION['chef_id'])) {
         }
 
         $stmt->close();
+
+        // Fetch the speciality_id for the logged-in teacher
+        $sql_speciality = "SELECT speciality_id FROM enseignant WHERE enseignant_id = ?";
+        $stmt_speciality = $conn->prepare($sql_speciality);
+        $stmt_speciality->bind_param("i", $chef_id);
+        $stmt_speciality->execute();
+        $result_speciality = $stmt_speciality->get_result();
+
+        if ($result_speciality->num_rows > 0) {
+            $row_speciality = $result_speciality->fetch_assoc();
+            $speciality_id = $row_speciality['speciality_id'];
+            $_SESSION['Chef_speciality_id'] = $speciality_id;
+
+            // Fetch the filiere_id associated with the speciality
+            $sql_filiere = "SELECT filiere_id FROM Niveau WHERE niveau_id = (
+                                SELECT niveau_id FROM Speciality WHERE speciality_id = ?
+                            )";
+            $stmt_filiere = $conn->prepare($sql_filiere);
+            $stmt_filiere->bind_param("i", $speciality_id);
+            $stmt_filiere->execute();
+            $result_filiere = $stmt_filiere->get_result();
+
+            if ($result_filiere->num_rows > 0) {
+                $row_filiere = $result_filiere->fetch_assoc();
+                $filiere_id = $row_filiere['filiere_id'];
+
+                // Fetch Speciality options for the same filiere
+                $sql_speciality = "SELECT speciality_id, nom_speciality FROM Speciality WHERE niveau_id IN (
+                                        SELECT niveau_id FROM Niveau WHERE filiere_id = ?
+                                    )";
+                $stmt_speciality = $conn->prepare($sql_speciality);
+                $stmt_speciality->bind_param("i", $filiere_id);
+                $stmt_speciality->execute();
+                $result_speciality = $stmt_speciality->get_result();
+
+                if ($result_speciality->num_rows > 0) {
+                    $specialites = $result_speciality->fetch_all(MYSQLI_ASSOC);
+                } else {
+                    echo "No specialities found for this filiere.";
+                }
+            } else {
+                echo "No filiere found for this speciality.";
+            }
+        } else {
+            echo "No speciality found for this enseignant ID.";
+        }
     } else {
         echo "Failed to prepare the SQL statement: " . $conn->error;
     }
 
-    // $conn->close();
+    $conn->close();
 } else {
-    echo "Enseignant ID not set in session.";
+    echo "Chef ID not set in session.";
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 
@@ -205,13 +254,11 @@ if (isset($_SESSION['chef_id'])) {
                         <option value="chef_specialite">Chef_speciality</option>
                     </select><br><br>
 
-                    <label for="speciality">Speciality:</label>
-                    <select id="speciality" name="speciality">
-                        <option value="1">SI</option>
-                        <option value="2">IL</option>
-                        <option value="3">ISIA</option>
-                        <option value="4">RFIA</option>
-                        <!-- Ajoutez d'autres options ici selon vos besoins -->
+                    <label for="Speciality">Speciality:</label>
+                    <select id="Speciality" name="Speciality">
+                        <?php foreach ($specialites as $specialite) : ?>
+                            <option value="<?php echo $specialite['speciality_id']; ?>"><?php echo $specialite['nom_speciality']; ?></option>
+                        <?php endforeach; ?>
                     </select><br><br>
 
                     <input type="submit" value="Add Professor">
@@ -231,7 +278,7 @@ if (isset($_SESSION['chef_id'])) {
                     <select id="theme" name="theme">
                         <?php
                         require 'connect.php'; // S'assurer que la connexion est incluse ici pour les requêtes
-                        $query = "SELECT title_theme FROM theme WHERE status = 'attribue'";
+                        $query = "SELECT title_theme FROM theme WHERE status = 'attribue' AND speciality_id = '$speciality_id'";
                         $rows = mysqli_query($conn, $query);
                         if ($rows && mysqli_num_rows($rows) > 0) {
                             foreach ($rows as $row) {

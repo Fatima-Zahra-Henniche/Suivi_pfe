@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS Binome (
     ) NOT NULL,
     niveau_id INT,
     theme_id INT,
+    date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (etudiant1_id) REFERENCES Etudiant(etudiant_id),
     FOREIGN KEY (etudiant2_id) REFERENCES Etudiant(etudiant_id),
     FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id),

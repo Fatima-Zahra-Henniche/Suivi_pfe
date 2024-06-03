@@ -4,15 +4,6 @@
     box-sizing: border-box;
 }
 
-.toolbar {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #3df1bb;
-    padding: 10px;
-}
-
 .modal {
     display: none;
     position: fixed;
@@ -26,7 +17,7 @@
 }
 
 .modal-content {
-    background-color: #007bff;
+    background-color: #7D80C7;
     margin: 2% auto; /* تم تعديل هذه القيمة */
     padding: 20px;
     border: 2px  #efeff2;
@@ -63,12 +54,12 @@ input[type="submit"] {
     margin-top: 10px;
     border: none;
     border-radius: 3px;
-    background-color: #007bff;
+    background-color: #7D80C7;
     color: #fff;
     font-size: 16px;
     cursor: pointer;
 }
 
 input[type="submit"]:hover {
-    background-color: #0056b3;
+    background-color: #acaff1;
 }

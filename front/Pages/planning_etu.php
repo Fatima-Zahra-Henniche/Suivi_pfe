@@ -1,41 +1,46 @@
 <?php
 require 'connect.php';
+
 session_start();
 
-if (isset($_SESSION['chef_id'])) {
-    $chef_id = $_SESSION['chef_id'];
-    $type = 'chef_specialite';
-    $sql = "SELECT e.nom_enseignant, e.prenom_enseignant, e.speciality_id, s.nom_speciality, 'chef speciality' AS job 
-            FROM enseignant e 
-            JOIN speciality s ON e.speciality_id = s.speciality_id 
-            WHERE e.type = ? AND e.enseignant_id = ?";
-    $stmt = $conn->prepare($sql);
+// Assuming $_SESSION['student_id'] contains the ID of the logged-in student
+$student_id = $_SESSION['etu_id'];
 
-    if ($stmt) {
-        $stmt->bind_param("si", $type, $chef_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+// Adjust the SQL query to fetch data based on the logged-in student's ID
+$sql = "SELECT 
+            e.nom_etudiant, 
+            e.prenom_etudiant, 
+            e.speciality_id, 
+            s.nom_speciality,
+            'etudiant' AS job 
+            FROM 
+                etudiant e
+            JOIN 
+                speciality s ON e.speciality_id = s.speciality_id 
+            WHERE 
+                e.etudiant_id = $student_id
+            ";
 
-        if ($result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-                echo "<div class='toolbar'>";
-                echo "<span>" . htmlspecialchars($row["nom_enseignant"]) . " " . htmlspecialchars($row["prenom_enseignant"]) . "</span>";
-                echo "<span>" . htmlspecialchars($row["job"]) . " " . htmlspecialchars($row["nom_speciality"]) . " </span>";
-                echo "<span class='logout'><a href='logout.php'>Déconnexion</a></span>";
-                echo "</div>";
-            }
-        } else {
-            echo "0 results";
-        }
 
-        $stmt->close();
-    } else {
-        echo "Failed to prepare the SQL statement: " . $conn->error;
-    }
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+    // Output data of the current student
+    $row = $result->fetch_assoc();
+
+    echo "<div class='toolbar'>";
+    echo "<span>" . $row["nom_etudiant"] . " " . $row["prenom_etudiant"] . "</span>";
+    echo "<span>" . $row["job"] . " " . $row["nom_speciality"] . "</span>"; // Displaying the job designation
+    echo "<span class'logout' ><a href='logout.php'>Déconnexion</a></span>";
+    echo "</div>";
 } else {
-    echo "Enseignant ID not set in session.";
+    echo "0 results";
 }
+
+$conn->close();
+
 ?>
+
 
 <!DOCTYPE html>
 <html lang="fr">
@@ -98,7 +103,7 @@ if (isset($_SESSION['chef_id'])) {
         <h1>Table De Planning</h1>
         <?php
         require 'connect.php';
-        $speciality_id = $_SESSION['Chef_speciality_id'];
+        $speciality_id = $_SESSION['etu_speciality_id'];
 
         try {
             $rows = $conn->query("SELECT 
