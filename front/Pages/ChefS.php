@@ -7,7 +7,10 @@ if (isset($_SESSION['chef_id'])) {
     $chef_id = $_SESSION['chef_id'];
     $type = 'chef_specialite';
 
-    $sql = "SELECT e.nom_enseignant, e.prenom_enseignant, e.speciality_id, s.nom_speciality, 'chef specialite' AS job FROM enseignant e JOIN speciality s ON e.speciality_id = s.speciality_id WHERE e.type = ? AND e.enseignant_id = ?";
+    $sql = "SELECT e.nom_enseignant, e.prenom_enseignant, e.speciality_id, s.nom_speciality, 'Chef Speciality' AS job 
+            FROM enseignant e 
+            JOIN speciality s ON e.speciality_id = s.speciality_id 
+            WHERE e.type = ? AND e.enseignant_id = ?";
     $stmt = $conn->prepare($sql);
 
     if ($stmt) {
@@ -19,8 +22,8 @@ if (isset($_SESSION['chef_id'])) {
             // Output data of each row
             while ($row = $result->fetch_assoc()) {
                 echo "<div class='toolbar'>";
-                echo "<span>" . $row["nom_enseignant"] . " " . $row["prenom_enseignant"] . "</span>";
-                echo "<span>" . $row["job"] . " " . $row["nom_speciality"] . " </span>";
+                echo "<span>" . htmlspecialchars($row["nom_enseignant"]) . " " . htmlspecialchars($row["prenom_enseignant"]) . "</span>";
+                echo "<span>" . htmlspecialchars($row["job"]) . " " . htmlspecialchars($row["nom_speciality"]) . " </span>";
                 echo "<span class='logout'><a href='logout.php'>Déconnexion</a></span>";
                 echo "</div>";
             }
@@ -43,9 +46,7 @@ if (isset($_SESSION['chef_id'])) {
             $_SESSION['Chef_speciality_id'] = $speciality_id;
 
             // Fetch the filiere_id associated with the speciality
-            $sql_filiere = "SELECT filiere_id FROM Niveau WHERE niveau_id = (
-                                SELECT niveau_id FROM Speciality WHERE speciality_id = ?
-                            )";
+            $sql_filiere = "SELECT filiere_id FROM speciality WHERE speciality_id = ?";
             $stmt_filiere = $conn->prepare($sql_filiere);
             $stmt_filiere->bind_param("i", $speciality_id);
             $stmt_filiere->execute();
@@ -56,9 +57,7 @@ if (isset($_SESSION['chef_id'])) {
                 $filiere_id = $row_filiere['filiere_id'];
 
                 // Fetch Speciality options for the same filiere
-                $sql_speciality = "SELECT speciality_id, nom_speciality FROM Speciality WHERE niveau_id IN (
-                                        SELECT niveau_id FROM Niveau WHERE filiere_id = ?
-                                    )";
+                $sql_speciality = "SELECT speciality_id, nom_speciality FROM speciality WHERE filiere_id = ?";
                 $stmt_speciality = $conn->prepare($sql_speciality);
                 $stmt_speciality->bind_param("i", $filiere_id);
                 $stmt_speciality->execute();
@@ -78,13 +77,10 @@ if (isset($_SESSION['chef_id'])) {
     } else {
         echo "Failed to prepare the SQL statement: " . $conn->error;
     }
-
-    $conn->close();
 } else {
     echo "Chef ID not set in session.";
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 
@@ -92,7 +88,6 @@ if (isset($_SESSION['chef_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PFE Admin</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link rel="stylesheet" href="../Styles/ChefS.css">
 </head>
 
@@ -105,6 +100,7 @@ if (isset($_SESSION['chef_id'])) {
                 <li><button onclick="document.getElementById('emailModal').style.display='block'"> Lancer la proposition </button></li>
                 <li><button onclick="document.getElementById('studentModal').style.display='block'">Importer Des Etudiants</button></li>
                 <li><button onclick="document.getElementById('teacherModal').style.display='block'">Ajouter Un Enseignants</button></li>
+                <li><button onclick="document.getElementById('chefModal').style.display='block'">Ajouter Chef Speciality</button></li>
                 <li><button onclick="document.getElementById('planingModal').style.display='block'">Saisir Un Planing</button></li>
             </ul>
         </div>
@@ -118,8 +114,6 @@ if (isset($_SESSION['chef_id'])) {
         <button><a href="Planning_Liste.php">Planning Liste</a></button>
     </div>
 
-
-
     <!-- Import EXCEL FILE -->
     <div id="studentModal" class="modal">
         <div class="modal-content">
@@ -127,7 +121,7 @@ if (isset($_SESSION['chef_id'])) {
             <div class="container">
                 <h2>Upload an EXCEL file please</h2>
                 <form action="" method="post" enctype="multipart/form-data">
-                    <input type="file" name="excel" required value="">
+                    <input type="file" name="excel" required>
                     <button type="submit" name="import">Import</button>
                 </form>
             </div>
@@ -137,64 +131,71 @@ if (isset($_SESSION['chef_id'])) {
     <?php
     if (isset($_POST['import'])) {
         $fileName = $_FILES["excel"]["name"];
-        $fileExtension = explode('.', $fileName);
-        $fileExtension = strtolower(end($fileExtension));
+        $fileTmpName = $_FILES["excel"]["tmp_name"];
+        $fileExtension = pathinfo($fileName, PATHINFO_EXTENSION);
+        $fileExtension = strtolower($fileExtension);
 
-        $newFileName = date("d.m.Y") . " - " . date("h.i.s") . "." . $fileExtension;
+        $newFileName = date("Y.m.d") . " - " . date("h.i.s") . "." . $fileExtension;
 
         $targetDirectory = "uploads/" . $newFileName;
-        if (!move_uploaded_file($_FILES["excel"]["tmp_name"], $targetDirectory)) {
+
+        if (move_uploaded_file($fileTmpName, $targetDirectory)) {
+            error_reporting(0);
+            ini_set('display_errors', 0);
+
+            require "exelReader/excel_reader2.php";
+            require "exelReader/SpreadsheetReader.php";
+
+            try {
+                $reader = new SpreadsheetReader($targetDirectory);
+
+                // Prepare the statement to fetch specialite_id
+                $sql_fetch_specialite_id = "SELECT speciality_id FROM speciality WHERE nom_speciality = ?";
+                $stmt_fetch_specialite_id = $conn->prepare($sql_fetch_specialite_id);
+
+                foreach ($reader as $key => $row) {
+                    $nom = $row[0];
+                    $prenom = $row[1];
+                    $n_insc = $row[2];
+                    $birthday = $row[3];
+                    $email = $row[4];
+                    $speciality_name = $row[5];
+
+                    // Fetch specialite_id using the speciality name
+                    $stmt_fetch_specialite_id->bind_param("s", $speciality_name);
+                    $stmt_fetch_specialite_id->execute();
+                    $result = $stmt_fetch_specialite_id->get_result();
+
+                    if ($result->num_rows > 0) {
+                        $speciality_row = $result->fetch_assoc();
+                        $specialite_id = $speciality_row['speciality_id'];
+
+                        // Insert the student data into the database
+                        $sql_insert = "INSERT INTO `etudiant`(`nom_etudiant`, `prenom_etudiant`, `n_inscription_etudiant`, `email_etudiant`, `speciality_id`, `birthday_etudiant`) 
+                                       VALUES (?, ?, ?, ?, ?, ?)";
+                        $stmt_insert = $conn->prepare($sql_insert);
+                        $stmt_insert->bind_param("ssssss", $nom, $prenom, $n_insc, $email, $specialite_id, $birthday);
+                        $stmt_insert->execute();
+                    } else {
+                        echo "Speciality not found for name: " . htmlspecialchars($speciality_name) . "<br>";
+                    }
+                }
+
+                echo "
+                <script>
+                alert('Successfully Imported');
+                document.location.href = '';
+                </script>
+                ";
+            } catch (Exception $e) {
+                echo "Error reading the Excel file: " . $e->getMessage();
+            }
+        } else {
             echo "Failed to move uploaded file.";
         }
-
-        require "exelReader/excel_reader2.php";
-        require "exelReader/SpreadsheetReader.php";
-
-        $reader = new SpreadsheetReader($targetDirectory);
-        foreach ($reader as $key => $row) {
-            $nom = $row[0];
-            $prenom = $row[1];
-            $n_insc = $row[2];
-            $birthday = $row[3];
-            $email = $row[4];
-            $niveauName = $row[5];
-            $specialityName = $row[6];
-
-            // Rechercher l'ID de niveau
-            $niveauQuery = mysqli_query($conn, "SELECT niveau_id FROM niveau WHERE nom_niveau ='$niveauName'");
-            if ($niveauRow = mysqli_fetch_assoc($niveauQuery)) {
-                $niveau = $niveauRow['niveau_id'];
-            } else {
-                echo "Niveau not found for name: $niveauName";
-                continue;
-            }
-
-            // Rechercher l'ID de speciality
-            $specialityQuery = mysqli_query($conn, "SELECT speciality_id FROM speciality WHERE nom_speciality ='$specialityName'");
-            if ($specialityRow = mysqli_fetch_assoc($specialityQuery)) {
-                $speciality = $specialityRow['speciality_id'];
-            } else {
-                echo "Speciality not found for name: $specialityName";
-                continue;
-            }
-
-            // Insertion des données dans la table etudiant
-            $insertQuery = "INSERT INTO `etudiant`(`nom_etudiant`, `prenom_etudiant`, `n_inscription_etudiant`, `birthday_etudiant`, `email_etudiant`, `niveau_id`, `speciality_id`) 
-                            VALUES ('$nom','$prenom','$n_insc','$birthday','$email','$niveau','$speciality')";
-            if (!mysqli_query($conn, $insertQuery)) {
-                echo "Error: " . mysqli_error($conn);
-            }
-        }
-
-        echo "
-        <script>
-        alert('Successfully Imported');
-        document.location.href = '';
-        </script>
-        ";
     }
-
     ?>
+
 
     <!-- Send Email -->
     <div id="emailModal" class="modal">
@@ -228,7 +229,6 @@ if (isset($_SESSION['chef_id'])) {
         });
     </script>
 
-
     <!-- Import teacher -->
     <div id="teacherModal" class="modl">
         <div class="modl-content">
@@ -248,20 +248,43 @@ if (isset($_SESSION['chef_id'])) {
                     <label for="N_tel">N_tel:</label>
                     <input type="text" id="N_tel" name="N_tel"><br><br>
 
-                    <label for="type">Type:</label>
-                    <select id="type" name="type">
-                        <option value="enseignant">Enseignant</option>
-                        <option value="chef_specialite">Chef_speciality</option>
-                    </select><br><br>
-
-                    <label for="Speciality">Speciality:</label>
-                    <select id="Speciality" name="Speciality">
-                        <?php foreach ($specialites as $specialite) : ?>
-                            <option value="<?php echo $specialite['speciality_id']; ?>"><?php echo $specialite['nom_speciality']; ?></option>
-                        <?php endforeach; ?>
-                    </select><br><br>
-
                     <input type="submit" value="Add Professor">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Chef Speciality -->
+    <div id="chefModal" class="modl">
+        <div class="modl-content">
+            <span class="close" onclick="document.getElementById('chefModal').style.display='none'">X</span>
+            <div class="contain">
+                <h2>Ajouter un chef speciality</h2>
+                <form action="import_Chef_Speciality.php" method="post">
+                    <label for="name">Nom:</label>
+                    <input type="text" id="name" name="name"><br><br>
+
+                    <label for="lastName">Prenom:</label>
+                    <input type="text" id="lastName" name="lastName"><br><br>
+
+                    <label for="email">Email:</label>
+                    <input type="text" id="email" name="email"><br><br>
+
+                    <label for="N_tel">N_tel:</label>
+                    <input type="text" id="N_tel" name="N_tel"><br><br>
+
+                    <label for="speciality">Speciality:</label>
+                    <select id="speciality" name="speciality">
+                        <?php
+                        if (isset($specialites)) {
+                            foreach ($specialites as $specialite) {
+                                echo "<option value='" . htmlspecialchars($specialite['speciality_id'], ENT_QUOTES) . "'>" . htmlspecialchars($specialite['nom_speciality'], ENT_QUOTES) . "</option>";
+                            }
+                        }
+                        ?>
+                    </select><br><br>
+
+                    <input type="submit" value="Add Chef Speciality">
                 </form>
             </div>
         </div>
@@ -325,7 +348,6 @@ if (isset($_SESSION['chef_id'])) {
 
                     <input type="submit" value="Add Planing">
                 </form>
-
             </div>
         </div>
     </div>

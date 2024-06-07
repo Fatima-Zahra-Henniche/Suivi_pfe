@@ -31,7 +31,7 @@ if ($result->num_rows > 0) {
     echo "<div class='toolbar'>";
     echo "<span>" . $row["nom_etudiant"] . " " . $row["prenom_etudiant"] . "</span>";
     echo "<span>" . $row["job"] . " " . $row["nom_speciality"] . "</span>"; // Displaying the job designation
-    echo "<span class'logout' ><a href='logout.php'>Déconnexion</a></span>";
+    echo "<span class='logout' ><a href='logout.php'>Déconnexion</a></span>";
     echo "</div>";
 } else {
     echo "0 results";
@@ -76,7 +76,7 @@ $conn->close();
 
         .toolbar .logout {
             justify-self: end;
-            margin-right: 15px;
+            padding-right: 15px;
             /* Aligns the logout button to the end of the grid */
         }
 

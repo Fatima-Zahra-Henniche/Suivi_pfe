@@ -32,23 +32,33 @@ if (isset($_SESSION['ens_id'])) {
         echo "Failed to prepare the SQL statement: " . $conn->error;
     }
 
-    // Fetch the speciality_id for the logged-in teacher
-    $sql = "SELECT speciality_id FROM enseignant WHERE enseignant_id = ?";
+    // Fetch the departement_id for the logged-in teacher
+    $sql = "SELECT departement_id FROM enseignant WHERE enseignant_id = ?";
     $stmt = $conn->prepare($sql);
+
+    // Debugging line
+    if (!$stmt) {
+        die("Failed to prepare the SQL statement (departement_id): " . $conn->error);
+    }
+
     $stmt->bind_param("i", $ens_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        $speciality_id = $row['speciality_id'];
+        $departement_id = $row['departement_id'];
 
-        // Fetch the filiere_id associated with the speciality
-        $query = "SELECT filiere_id FROM Niveau WHERE niveau_id = (
-                    SELECT niveau_id FROM Speciality WHERE speciality_id = ?
-                )";
+        // Fetch the filiere_id associated with the departement_id
+        $query = "SELECT filiere_id FROM Filieres WHERE departement_id = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("i", $speciality_id);
+
+        // Debugging line
+        if (!$stmt) {
+            die("Failed to prepare the SQL statement (filiere_id): " . $conn->error);
+        }
+
+        $stmt->bind_param("i", $departement_id);
         $stmt->execute();
         $filiere_id_result = $stmt->get_result();
 
@@ -56,39 +66,29 @@ if (isset($_SESSION['ens_id'])) {
             $filiere_row = $filiere_id_result->fetch_assoc();
             $filiere_id = $filiere_row['filiere_id'];
 
-            // Fetch all niveaux in the same filiere
-            $query = "SELECT niveau_id, nom_niveau FROM Niveau WHERE filiere_id = ?";
+            // Fetch Speciality options for the same filiere
+            $query = "SELECT speciality_id, nom_speciality FROM Speciality WHERE filiere_id = ?";
             $stmt = $conn->prepare($query);
+
+            // Debugging line
+            if (!$stmt) {
+                die("Failed to prepare the SQL statement (speciality): " . $conn->error);
+            }
+
             $stmt->bind_param("i", $filiere_id);
             $stmt->execute();
-            $niveaux_result = $stmt->get_result();
+            $specialites_result = $stmt->get_result();
 
-            if ($niveaux_result->num_rows > 0) {
-                $niveaux = $niveaux_result->fetch_all(MYSQLI_ASSOC);
-
-
-                // Fetch Speciality options for the same filiere
-                $query = "SELECT speciality_id, nom_speciality FROM Speciality WHERE niveau_id IN (
-                            SELECT niveau_id FROM Niveau WHERE filiere_id = ?
-                        )";
-                $stmt = $conn->prepare($query);
-                $stmt->bind_param("i", $filiere_id);
-                $stmt->execute();
-                $specialites_result = $stmt->get_result();
-
-                if ($specialites_result->num_rows > 0) {
-                    $specialites = $specialites_result->fetch_all(MYSQLI_ASSOC);
-                } else {
-                    echo "No specialities found for this filiere.";
-                }
+            if ($specialites_result->num_rows > 0) {
+                $specialites = $specialites_result->fetch_all(MYSQLI_ASSOC);
             } else {
-                echo "No niveaux found for this filiere.";
+                echo "No specialities found for this filiere.";
             }
         } else {
-            echo "No filiere found for this speciality.";
+            echo "No filiere found for this departement.";
         }
     } else {
-        echo "No speciality found for this enseignant ID.";
+        echo "No departement found for this enseignant ID.";
     }
 
     $conn->close();
@@ -96,8 +96,6 @@ if (isset($_SESSION['ens_id'])) {
     echo "Enseignant ID not set in session.";
 }
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -313,21 +311,16 @@ if (isset($_SESSION['ens_id'])) {
                     <select id="stage" name="stage">
                         <option value="oui">Oui</option>
                         <option value="non">Non</option>
-                    </select><br>
-
-                    <label for="niveau">Niveau:</label>
-                    <select id="niveau" name="niveau">
-                        <?php foreach ($niveaux as $niveau) : ?>
-                            <option value="<?php echo $niveau['niveau_id']; ?>"><?php echo $niveau['nom_niveau']; ?></option>
-                        <?php endforeach; ?>
-                    </select><br>
+                    </select></br></br>
 
                     <label for="Speciality">Speciality:</label>
                     <select id="Speciality" name="Speciality">
-                        <?php foreach ($specialites as $specialite) : ?>
-                            <option value="<?php echo $specialite['speciality_id']; ?>"><?php echo $specialite['nom_speciality']; ?></option>
-                        <?php endforeach; ?>
-                    </select><br><br>
+                        <?php if (isset($specialites)) : ?>
+                            <?php foreach ($specialites as $specialite) : ?>
+                                <option value="<?php echo $specialite['speciality_id']; ?>"><?php echo $specialite['nom_speciality']; ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select></br></br>
 
                     <!-- Hidden input for ens_id -->
                     <input type="hidden" id="ens_id" name="ens_id" value="<?php echo $_SESSION['ens_id']; ?>">

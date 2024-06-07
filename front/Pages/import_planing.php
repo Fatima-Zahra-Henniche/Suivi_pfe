@@ -99,7 +99,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Exécution de la requête
     if ($stmt->execute()) {
-        header('Location: ../Pages/planning.php');
+        // Mise à jour du statut du thème à "termine"
+        $update_query = "UPDATE theme SET status = 'termine' WHERE theme_id = ?";
+        $update_stmt = $conn->prepare($update_query);
+        if ($update_stmt === false) {
+            die('Erreur de préparation de la requête de mise à jour : ' . $conn->error);
+        }
+        $update_stmt->bind_param("i", $theme_id);
+        if ($update_stmt->execute()) {
+            echo "Statut du thème mis à jour avec succès.<br>";
+        } else {
+            echo "Erreur lors de la mise à jour du statut du thème : " . $update_stmt->error;
+        }
+
+        header('Location: ../Pages/ChefS.php');
     } else {
         echo 'Erreur lors de l\'insertion : ' . $stmt->error;
     }

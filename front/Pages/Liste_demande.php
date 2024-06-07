@@ -40,7 +40,7 @@ if (isset($_SESSION['ens_id'])) {
                     e1.prenom_etudiant AS etudiant1_prenom,
                     e2.nom_etudiant AS etudiant2_nom,
                     e2.prenom_etudiant AS etudiant2_prenom,
-                    n.nom_niveau AS nom_niveau
+                    sp.nom_speciality AS nom_speciality
                 FROM 
                     binome b
                 JOIN 
@@ -50,7 +50,7 @@ if (isset($_SESSION['ens_id'])) {
                 JOIN 
                     Etudiant e2 ON b.etudiant2_id = e2.etudiant_id
                 JOIN 
-                    Niveau n ON b.niveau_id = n.niveau_id
+                    Speciality sp ON t.speciality_id = sp.speciality_id
                 WHERE 
                     b.enseignant_id = ? AND b.status = 'en_attente'";
 
@@ -70,7 +70,7 @@ if (isset($_SESSION['ens_id'])) {
                             <th>Id</th>
                             <th>Titre</th>
                             <th>Binome</th>
-                            <th>Niveau</th>
+                            <th>Speciality</th>
                             <th>Decision</th>
                         </tr>
                     </thead>';
@@ -81,10 +81,10 @@ if (isset($_SESSION['ens_id'])) {
                             <td>' . $i++ . '</td>
                             <td>' . htmlspecialchars($row['title_theme']) . '</td>
                             <td>' . htmlspecialchars($row['etudiant1_nom']) . ' ' . htmlspecialchars($row['etudiant1_prenom']) . '<br>' . htmlspecialchars($row['etudiant2_nom']) . ' ' . htmlspecialchars($row['etudiant2_prenom']) . '</td>
-                            <td>' . htmlspecialchars($row['nom_niveau']) . '</td>
+                            <td>' . htmlspecialchars($row['nom_speciality']) . '</td>
                             <td>
-                                <button class="accept-btn" data-binome-id="' . $row['id'] . '" data-theme-id="' . $row['theme_id'] . '">Accepter</button>
-                                <button class="reject-btn" data-binome-id="' . $row['id'] . '">Refuser</button>
+                                <button class="accept-btn btn btn-light mb-2" data-binome-id="' . $row['id'] . '" data-theme-id="' . $row['theme_id'] . '">Accepter</button>
+                                <button class="reject-btn btn btn-light mb-2" data-binome-id="' . $row['id'] . '">Refuser</button>
                             </td>
                         </tr>
                     </tbody>';
@@ -192,12 +192,13 @@ if (isset($_SESSION['ens_id'])) {
             rejectButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const binomeId = this.getAttribute('data-binome-id');
-                    updateStatus(binomeId, null, 'refuse', null, false);
+                    updateStatus(binomeId, null, 'refuse', null, false, true);
                 });
             });
+
         });
 
-        function updateStatus(binomeId, themeId, binomeStatus, themeStatus, deleteOthers) {
+        function updateStatus(binomeId, themeId, binomeStatus, themeStatus, deleteOthers, deleteRequest = false) {
             const xhr = new XMLHttpRequest();
             xhr.open('POST', 'update_status.php', true);
             xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
@@ -209,7 +210,12 @@ if (isset($_SESSION['ens_id'])) {
                 }
             };
 
-            xhr.send('binome_id=' + binomeId + '&theme_id=' + themeId + '&binome_status=' + binomeStatus + '&theme_status=' + themeStatus + '&delete_others=' + deleteOthers);
+            let params = 'binome_id=' + binomeId + '&delete_request=' + deleteRequest;
+            if (!deleteRequest) {
+                params += '&theme_id=' + themeId + '&binome_status=' + binomeStatus + '&theme_status=' + themeStatus + '&delete_others=' + deleteOthers;
+            }
+
+            xhr.send(params);
         }
     </script>
 </body>

@@ -219,7 +219,7 @@ $conn->close();
                         <td><?php echo htmlspecialchars($row['title_theme']); ?></td>
                         <td><?php echo htmlspecialchars($row['stage']); ?></td>
                         <td><?php echo htmlspecialchars($row['nom_enseignant']); ?></td>
-                        <td><button onclick="showModal(<?php echo htmlspecialchars(json_encode($row)); ?>)">Details</button></td>
+                        <td><button onclick="showModal(<?php echo htmlspecialchars(json_encode($row)); ?>)" class="btn btn-light mb-2">Details</button></td>
                     </tr>
                 <?php endforeach; ?>
             </table>
@@ -244,8 +244,8 @@ $conn->close();
                     <input type="number" name="student_id" id="studentId" required><br>
                     <label for="binome_id">Entrer le numero d'inscription de votre binome:</label>
                     <input type="number" name="binome_id" id="binomeId"><br>
-                    <button type="submit">Demande l'encadrement</button>
-                    <button type="button" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-light mb-2">Demande l'encadrement</button>
+                    <button type="button" onclick="closeModal()" class="btn btn-light mb-2">Cancel</button>
                 </form>
             </div>
         </div>

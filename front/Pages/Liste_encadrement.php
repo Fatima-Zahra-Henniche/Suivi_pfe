@@ -121,7 +121,6 @@ if (isset($_SESSION['ens_id'])) {
                 e1.prenom_etudiant AS etudiant1_prenom,
                 e2.nom_etudiant AS etudiant2_nom,
                 e2.prenom_etudiant AS etudiant2_prenom,
-                n.nom_niveau AS nom_niveau,
                 s.nom_speciality AS nom_speciality
             FROM 
                 binome b
@@ -132,8 +131,6 @@ if (isset($_SESSION['ens_id'])) {
             JOIN 
                 Etudiant e2 ON b.etudiant2_id = e2.etudiant_id
             JOIN 
-                Niveau n ON b.niveau_id = n.niveau_id
-            JOIN
                 Speciality s ON t.speciality_id = s.speciality_id
             WHERE 
                 b.enseignant_id = ? 
@@ -150,7 +147,6 @@ if (isset($_SESSION['ens_id'])) {
         echo
         "<th scope='col'>Titre</th>";
         echo "<th scope='col'>Etudiants</th>";
-        echo "<th scope='col'>Niveau</th>";
         echo "<th scope='col'>Speciality</th>";
         echo "<th scope='col'>Taux Memoire</th>";
         echo "<th scope='col'>Taux Logiciel</th>";
@@ -165,7 +161,6 @@ if (isset($_SESSION['ens_id'])) {
                     " . $row["etudiant1_nom"] . " " . $row["etudiant1_prenom"] . "</br>
                     " . $row["etudiant2_nom"] . " " . $row["etudiant2_prenom"] . "
                 </td>";
-            echo "<td>" . $row["nom_niveau"] . "</td>";
             echo "<td>" . $row["nom_speciality"] . "</td>";
             echo "<form action='import_taux.php' method='post'>";
             echo "<td><input type='number' name='taux_memoire' min='0' max='100' required></td>";

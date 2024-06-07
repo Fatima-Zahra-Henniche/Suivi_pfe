@@ -21,19 +21,12 @@ CREATE TABLE IF NOT EXISTS Filieres (
     departement_id INT,
     FOREIGN KEY (departement_id) REFERENCES Departement(departement_id)
 );
--- Create Niveau table
-CREATE TABLE IF NOT EXISTS Niveau (
-    niveau_id INT AUTO_INCREMENT PRIMARY KEY,
-    nom_niveau VARCHAR(100) NOT NULL,
-    filiere_id INT,
-    FOREIGN KEY (filiere_id) REFERENCES Filieres(filiere_id)
-);
 -- Create Speciality table
 CREATE TABLE IF NOT EXISTS Speciality (
     speciality_id INT AUTO_INCREMENT PRIMARY KEY,
     nom_speciality VARCHAR(100) NOT NULL,
-    niveau_id INT,
-    FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id)
+    filiere_id INT,
+    FOREIGN KEY (filiere_id) REFERENCES Filieres(filiere_id)
 );
 -- Create Enseignant table
 CREATE TABLE IF NOT EXISTS Enseignant (
@@ -42,11 +35,10 @@ CREATE TABLE IF NOT EXISTS Enseignant (
     prenom_enseignant VARCHAR(100) NOT NULL,
     email_enseignant VARCHAR(100) NOT NULL,
     N_telephone_enseignant VARCHAR(100) NOT NULL,
-    type ENUM(
-        'enseignant',
-        'chef_specialite'
-    ) NOT NULL,
+    type ENUM('enseignant', 'chef_specialite') NOT NULL,
+    departement_id INT,
     speciality_id INT,
+    FOREIGN KEY (departement_id) REFERENCES Departement(departement_id),
     FOREIGN KEY (speciality_id) REFERENCES Speciality(speciality_id)
 );
 -- Create Etudiant table
@@ -57,9 +49,7 @@ CREATE TABLE IF NOT EXISTS Etudiant (
     n_inscription_etudiant VARCHAR(100) NOT NULL,
     birthday_etudiant DATE NOT NULL,
     email_etudiant VARCHAR(100) NOT NULL,
-    niveau_id INT,
     speciality_id INT,
-    FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id),
     FOREIGN KEY (speciality_id) REFERENCES Speciality(speciality_id)
 );
 -- Create Theme table
@@ -79,10 +69,8 @@ CREATE TABLE IF NOT EXISTS Theme (
     ) NOT NULL,
     speciality_id INT,
     enseignant_id INT,
-    niveau_id INT,
     FOREIGN KEY (speciality_id) REFERENCES Speciality(speciality_id),
-    FOREIGN KEY (enseignant_id) REFERENCES Enseignant(enseignant_id),
-    FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id)
+    FOREIGN KEY (enseignant_id) REFERENCES Enseignant(enseignant_id)
 );
 -- Create Binome table
 CREATE TABLE IF NOT EXISTS Binome (
@@ -92,16 +80,11 @@ CREATE TABLE IF NOT EXISTS Binome (
     etudiant1_id INT NOT NULL,
     etudiant2_id INT NOT NULL,
     enseignant_id INT,
-    status ENUM(
-        'en_attente',
-        'attribue'
-    ) NOT NULL,
-    niveau_id INT,
+    status ENUM('en_attente', 'attribue') NOT NULL,
     theme_id INT,
     date_created DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (etudiant1_id) REFERENCES Etudiant(etudiant_id),
     FOREIGN KEY (etudiant2_id) REFERENCES Etudiant(etudiant_id),
-    FOREIGN KEY (niveau_id) REFERENCES Niveau(niveau_id),
     FOREIGN KEY (theme_id) REFERENCES Theme(theme_id),
     FOREIGN KEY (enseignant_id) REFERENCES Enseignant(enseignant_id)
 );
@@ -122,3 +105,36 @@ CREATE TABLE IF NOT EXISTS Planning (
     FOREIGN KEY (jury_01) REFERENCES Enseignant(enseignant_id),
     FOREIGN KEY (jury_02) REFERENCES Enseignant(enseignant_id)
 );
+-- Create Triggers
+DELIMITER // CREATE TRIGGER before_insert_enseignant BEFORE
+INSERT ON Enseignant FOR EACH ROW BEGIN IF NEW.type = 'enseignant' THEN IF NEW.departement_id IS NULL THEN SIGNAL SQLSTATE '45000'
+SET MESSAGE_TEXT = "Enseignant must have a departement_id";
+END IF;
+IF NEW.speciality_id IS NOT NULL THEN SIGNAL SQLSTATE '45000'
+SET MESSAGE_TEXT = 'Enseignant cannot have a speciality_id';
+END IF;
+ELSEIF NEW.type = 'chef_specialite' THEN IF NEW.speciality_id IS NULL THEN SIGNAL SQLSTATE '45000'
+SET MESSAGE_TEXT = 'Chef_specialite must have a speciality_id';
+END IF;
+IF NEW.departement_id IS NOT NULL THEN SIGNAL SQLSTATE '45000'
+SET MESSAGE_TEXT = 'Chef_specialite cannot have a departement_id';
+END IF;
+END IF;
+END;
+// DELIMITER;
+DELIMITER // CREATE TRIGGER before_update_enseignant BEFORE
+UPDATE ON Enseignant FOR EACH ROW BEGIN IF NEW.type = 'enseignant' THEN IF NEW.departement_id IS NULL THEN SIGNAL SQLSTATE '45000'
+SET MESSAGE_TEXT = 'Enseignant must have a departement_id';
+END IF;
+IF NEW.speciality_id IS NOT NULL THEN SIGNAL SQLSTATE '45000'
+SET MESSAGE_TEXT = 'Enseignant cannot have a speciality_id';
+END IF;
+ELSEIF NEW.type = 'chef_specialite' THEN IF NEW.speciality_id IS NULL THEN SIGNAL SQLSTATE '45000'
+SET MESSAGE_TEXT = 'Chef_specialite must have a speciality_id';
+END IF;
+IF NEW.departement_id IS NOT NULL THEN SIGNAL SQLSTATE '45000'
+SET MESSAGE_TEXT = 'Chef_specialite cannot have a departement_id';
+END IF;
+END IF;
+END;
+// DELIMITER;
