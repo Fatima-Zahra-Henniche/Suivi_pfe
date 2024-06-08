@@ -12,12 +12,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $outils = $_POST['outils'];
     $connaissances = $_POST['connaissances'];
     $stage = $_POST['stage']; // ID du stage sélectionné dans le menu déroulant
-    $niveau = $_POST['niveau']; // ID du niveau sélectionné dans le menu déroulant
     $speciality = $_POST['Speciality']; // ID de la spécialité sélectionnée dans le menu déroulant
     $ens_id = $_POST['ens_id']; // ID de l'enseignant qui suggère le thème
 
     // Préparation de la requête SQL pour l'insertion
-    $sql = "INSERT INTO theme (title_theme, description_theme, objectif_theme, outils_theme, connaissances_theme, stage, niveau_id, enseignant_id, speciality_id) VALUES (:nom, :description, :objectives, :outils, :connaissances, :stage, :niveau_id, :ens_id, :speciality_id)";
+    $sql = "INSERT INTO theme (title_theme, description_theme, objectif_theme, outils_theme, connaissances_theme, stage, enseignant_id, speciality_id) VALUES (:nom, :description, :objectives, :outils, :connaissances, :stage, :ens_id, :speciality_id)";
 
     $stmt = $pdo->prepare($sql);
 
@@ -28,7 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bindParam(':outils', $outils);
     $stmt->bindParam(':connaissances', $connaissances);
     $stmt->bindParam(':stage', $stage);
-    $stmt->bindParam(':niveau_id', $niveau);
     $stmt->bindParam(':speciality_id', $speciality);
     $stmt->bindParam(':ens_id', $ens_id);
 

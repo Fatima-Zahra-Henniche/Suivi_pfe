@@ -9,14 +9,14 @@ $student_id = $_SESSION['etu_id'];
 $sql = "SELECT 
             e.nom_etudiant, 
             e.prenom_etudiant, 
-            e.niveau_id, 
-            n.nom_niveau,
+            e.speciality_id, 
+            sp.nom_speciality,
             'Etudiant' AS job,
             e.speciality_id
         FROM 
             etudiant e
         JOIN 
-            niveau n ON e.niveau_id = n.niveau_id 
+            Speciality sp ON e.speciality_id = sp.speciality_id 
         WHERE 
             e.etudiant_id = $student_id";
 
@@ -38,7 +38,7 @@ if ($result->num_rows > 0) {
 
     echo "<div class='toolbar'>";
     echo "<span>" . htmlspecialchars($row["nom_etudiant"]) . " " . htmlspecialchars($row["prenom_etudiant"]) . "</span>";
-    echo "<span>" . htmlspecialchars($row["job"]) . " " . htmlspecialchars($row["nom_niveau"]) . "</span>"; // Displaying the job designation
+    echo "<span>" . htmlspecialchars($row["job"]) . " " . htmlspecialchars($row["nom_speciality"]) . "</span>"; // Displaying the job designation
     echo "<span class='logout'><a href='logout.php'>Déconnexion</a></span>";
     echo "</div>";
 } else {
@@ -164,18 +164,18 @@ $conn->close();
             $check_result = mysqli_query($conn, $check_query);
 
             if (mysqli_num_rows($check_result) == 0) {
-                // Récupérer l'enseignant_id et niveau_id à partir du theme
-                $encadrant_query = "SELECT enseignant_id, niveau_id FROM theme WHERE theme_id = '$theme_id'";
+                // Récupérer l'enseignant_id  à partir du theme
+                $encadrant_query = "SELECT enseignant_id FROM theme WHERE theme_id = '$theme_id'";
                 $encadrant_result = mysqli_query($conn, $encadrant_query);
 
                 if ($encadrant_result && mysqli_num_rows($encadrant_result) > 0) {
                     $row = mysqli_fetch_assoc($encadrant_result);
                     $encadrant_id = $row['enseignant_id'];
-                    $niveau_id = $row['niveau_id'];
+
 
                     // Insérer la demande d'encadrement dans la table binome
-                    $insert_query = "INSERT INTO binome (enseignant_id, etudiant1_id, etudiant2_id, niveau_id, theme_id, status, date_created) 
-                                     VALUES ('$encadrant_id', '$etudiant1_id', '$etudiant2_id', '$niveau_id', '$theme_id', 'en_attente', NOW())";
+                    $insert_query = "INSERT INTO binome (enseignant_id, etudiant1_id, etudiant2_id, theme_id, status, date_created) 
+                                     VALUES ('$encadrant_id', '$etudiant1_id', '$etudiant2_id', '$theme_id', 'en_attente', NOW())";
 
                     if (mysqli_query($conn, $insert_query)) {
                         echo "Demande d'encadrement soumise avec succès.";

@@ -144,8 +144,7 @@ if (isset($_SESSION['ens_id'])) {
         echo "<thead>";
         echo "<tr>";
         echo "<th scope='col'>N°</th>";
-        echo
-        "<th scope='col'>Titre</th>";
+        echo "<th scope='col'>Titre</th>";
         echo "<th scope='col'>Etudiants</th>";
         echo "<th scope='col'>Speciality</th>";
         echo "<th scope='col'>Taux Memoire</th>";

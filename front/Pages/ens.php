@@ -281,6 +281,8 @@ if (isset($_SESSION['ens_id'])) {
                 <button onclick="document.getElementById('ThemModal').style.display='block'">Ajouter Un Sujet</button>
                 <button><a href="Liste_demande.php"> Liste des demandes </a></button>
                 <button><a href="Liste_encadrement.php"> Liste des encadrements </a></button>
+                <button><a href="Liste_Theme_nom_Attribue_ens.php"> Liste des Themes non Attribue </a></button>
+                <button><a href="Liste_Theme_Attribue_ens.php"> Liste des Themes Attribue </a></button>
                 <button><a href="planning_ens.php"> Liste De Planning </a></button>
             </div>
         </div>
