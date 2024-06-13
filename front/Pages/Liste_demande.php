@@ -185,20 +185,20 @@ if (isset($_SESSION['ens_id'])) {
                 button.addEventListener('click', function() {
                     const binomeId = this.getAttribute('data-binome-id');
                     const themeId = this.getAttribute('data-theme-id');
-                    updateStatus(binomeId, themeId, 'attribue', 'attribue', true);
+                    updateStatus(binomeId, themeId, 'attribue', 'attribue', true, 'choisi');
                 });
             });
 
             rejectButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const binomeId = this.getAttribute('data-binome-id');
-                    updateStatus(binomeId, null, 'refuse', null, false, true);
+                    updateStatus(binomeId, null, 'refuse', null, false, null, true);
                 });
             });
 
         });
 
-        function updateStatus(binomeId, themeId, binomeStatus, themeStatus, deleteOthers, deleteRequest = false) {
+        function updateStatus(binomeId, themeId, binomeStatus, themeStatus, deleteOthers, etudiantStatus = null, deleteRequest = false) {
             const xhr = new XMLHttpRequest();
             xhr.open('POST', 'update_status.php', true);
             xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
@@ -213,6 +213,9 @@ if (isset($_SESSION['ens_id'])) {
             let params = 'binome_id=' + binomeId + '&delete_request=' + deleteRequest;
             if (!deleteRequest) {
                 params += '&theme_id=' + themeId + '&binome_status=' + binomeStatus + '&theme_status=' + themeStatus + '&delete_others=' + deleteOthers;
+                if (etudiantStatus !== null) {
+                    params += '&etudiant_status=' + etudiantStatus;
+                }
             }
 
             xhr.send(params);

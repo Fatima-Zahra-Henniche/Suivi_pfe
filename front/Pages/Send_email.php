@@ -20,21 +20,25 @@ if ($result_chef->num_rows > 0) {
     $chef_speciality_id = $row_chef['speciality_id'];
     $chef_email = $row_chef['email_enseignant'];
 
-    // Retrieve the name of the speciality
-    $sql_speciality = "SELECT nom_speciality FROM Speciality WHERE speciality_id = ?";
-    $stmt_speciality = $conn->prepare($sql_speciality);
-    $stmt_speciality->bind_param("i", $chef_speciality_id);
-    $stmt_speciality->execute();
-    $result_speciality = $stmt_speciality->get_result();
+    // Retrieve the departement_id based on the speciality_id through the Filiere table
+    $sql_departement = "SELECT d.departement_id, d.nom_departement FROM Speciality s 
+                        JOIN Filieres f ON s.filiere_id = f.filiere_id
+                        JOIN Departement d ON f.departement_id = d.departement_id
+                        WHERE s.speciality_id = ?";
+    $stmt_departement = $conn->prepare($sql_departement);
+    $stmt_departement->bind_param("i", $chef_speciality_id);
+    $stmt_departement->execute();
+    $result_departement = $stmt_departement->get_result();
 
-    if ($result_speciality->num_rows > 0) {
-        $row_speciality = $result_speciality->fetch_assoc();
-        $speciality_name = $row_speciality['nom_speciality'];
+    if ($result_departement->num_rows > 0) {
+        $row_departement = $result_departement->fetch_assoc();
+        $departement_id = $row_departement['departement_id'];
+        $departement_name = $row_departement['nom_departement'];
 
-        // Retrieve email addresses of all enseignants of the same speciality from the database
-        $sql = "SELECT email_enseignant FROM Enseignant WHERE type = 'enseignant' AND speciality_id = ?";
+        // Retrieve email addresses of all enseignants of the same departement from the database
+        $sql = "SELECT email_enseignant FROM Enseignant WHERE type = 'enseignant' AND departement_id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $chef_speciality_id);
+        $stmt->bind_param("i", $departement_id);
         $stmt->execute();
         $result = $stmt->get_result();
 
@@ -42,23 +46,24 @@ if ($result_chef->num_rows > 0) {
             // Initialize PHPMailer
             $mail = new PHPMailer(true);
             try {
-                //Server settings
+                // Server settings
+                $mail->SMTPDebug = 2; // Enable verbose debug output
                 $mail->isSMTP();
                 $mail->Host = 'smtp.gmail.com';  // Set the SMTP server to send through
                 $mail->SMTPAuth = true;
-                $mail->Username = 'appelipad021@gmail.com'; // SMTP username
-                $mail->Password = 'fatima982468zahra'; // SMTP password or app-specific password
+                $mail->Username = 'fati982468ma021@gmail.com'; // SMTP username
+                $mail->Password = 'fade kitq fcey nebm'; // SMTP password or app-specific password
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port = 587;
 
-                //Recipients
-                $mail->setFrom($chef_email, 'Chef Speciality');
+                // Recipients
+                $mail->setFrom($chef_email, 'Chef Specialite');
 
                 // Loop through each row and send email to enseignants
                 while ($row = $result->fetch_assoc()) {
                     $to_email = $row["email_enseignant"];
                     $subject = "Proposing Themes";
-                    $message = "You can start proposing themes for the speciality " . $speciality_name . ".";
+                    $message = "You can start proposing themes for the departement " . $departement_name . ".";
 
                     // Add a recipient
                     $mail->addAddress($to_email);
@@ -83,10 +88,10 @@ if ($result_chef->num_rows > 0) {
                 echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
             }
         } else {
-            echo "No enseignant found in the database for this speciality.";
+            echo "No enseignant found in the database for this departement.";
         }
     } else {
-        echo "Speciality not found.";
+        echo "Departement not found.";
     }
 } else {
     echo "Chef speciality not found.";

@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS Etudiant (
     n_inscription_etudiant VARCHAR(100) NOT NULL,
     birthday_etudiant DATE NOT NULL,
     email_etudiant VARCHAR(100) NOT NULL,
+    status ENUM('pas_choisi', 'choisi') DEFAULT 'pas_choisi',
     speciality_id INT,
     FOREIGN KEY (speciality_id) REFERENCES Speciality(speciality_id)
 );

@@ -171,7 +171,7 @@ if (isset($_SESSION['ens_id'])) {
         .image-container img {
             width: 40%;
             /* Adjust as needed */
-            height: 55%;
+            height: 60%;
             margin: 0 auto;
             margin-top: 40px;
             /* Center the image horizontally */

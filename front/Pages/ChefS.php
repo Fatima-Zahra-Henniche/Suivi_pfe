@@ -109,8 +109,9 @@ if (isset($_SESSION['chef_id'])) {
     <div class="Home">
         <button><a href="ChefS_List_etu.php">Liste des etudiants</a></button>
         <button><a href="ChefS_List_ens.php">Liste des enseignants</a></button>
-        <button><a href="ChefS_Liste_Theme_nom_valide.php"> Themes non valide </a></button>
-        <button><a href="Liste_Theme.php">Liste des themes</a></button>
+        <button><a href="etu_pas_choisi.php">Les etudiants sans sujet</a></button>
+        <button><a href="ChefS_Liste_Theme_nom_valide.php"> Les Themes non valide </a></button>
+        <button><a href="Liste_Theme.php">Liste des Encadrement</a></button>
         <button><a href="Planning_Liste.php">Planning Liste</a></button>
     </div>
 
