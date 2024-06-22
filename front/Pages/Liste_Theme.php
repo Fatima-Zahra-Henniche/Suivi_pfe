@@ -117,7 +117,7 @@ if (isset($_SESSION['chef_id'])) {
     $chef_speciality_id = $chef_row['speciality_id'];
 
     // Correct the SQL query to properly join the tables and select the necessary columns
-    $query = "SELECT t.theme_id, t.stage, t.title_theme, e.nom_enseignant, b.taux_memoire, b.taux_logiciel,
+    $query = "SELECT t.theme_id, t.stage, t.title_theme, t.permission, e.nom_enseignant, b.taux_memoire, b.taux_logiciel,
                     et1.nom_etudiant AS etudiant1_nom, et1.prenom_etudiant AS etudiant1_prenom,
                     et2.nom_etudiant AS etudiant2_nom, et2.prenom_etudiant AS etudiant2_prenom
                 FROM theme t
@@ -142,6 +142,7 @@ if (isset($_SESSION['chef_id'])) {
                     <th>Binome</th>
                     <th>Taux D'avancement Memoire</th>
                     <th>Taux D'avancement Logiciel</th>
+                    <th>Permission de Soutenance</th>
                 </tr>
                 <?php
                 $i = 1;
@@ -161,6 +162,9 @@ if (isset($_SESSION['chef_id'])) {
                         </td>
                         <td>
                             <?php echo htmlspecialchars($row['taux_logiciel']); ?>
+                        </td>
+                        <td>
+                            <?php echo htmlspecialchars($row['permission']); ?>
                         </td>
                     </tr>
                 <?php endwhile; ?>

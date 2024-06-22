@@ -95,6 +95,20 @@ $conn->close();
             margin-top: 60px;
         }
 
+        .image-container {
+            text-align: center;
+            /* Center the image horizontally */
+        }
+
+        .image-container img {
+            width: 40%;
+            /* Adjust as needed */
+            height: 55%;
+            margin: 0 auto;
+            margin-top: 40px;
+            /* Center the image horizontally */
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -225,7 +239,7 @@ $conn->close();
             </table>
     <?php
         } else {
-            echo "Aucun résultat trouvé.";
+            echo "<div class=\"image-container\"><img src=\"../images/no_result.png\" alt=\"No results image\"></div>";
         }
     } else {
         echo "Erreur dans la requête: " . mysqli_error($conn);

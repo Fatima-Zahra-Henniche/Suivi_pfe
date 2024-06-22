@@ -41,7 +41,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bind_param("ssssi", $name, $lastName, $email, $N_tel, $speciality);
             if ($stmt->execute()) {
                 // Redirect to a success page or display a success message
-                echo "Chef specialty added successfully!";
+                echo "<script type='text/javascript'>
+                alert('Enseignant ajouté avec succès.');
+                window.location.href = 'ChefS.php';
+              </script>";
             } else {
                 echo "Erreur: " . $stmt->error;
             }

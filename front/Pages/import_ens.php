@@ -44,8 +44,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Exécution de la requête
     if ($stmt->execute()) {
-        echo "Enseignant ajouté avec succès.";
+        echo "<script type='text/javascript'>
+            alert('Enseignant ajouté avec succès.');
+            window.location.href = 'ChefS.php';
+          </script>";
     } else {
-        echo "Erreur lors de l'ajout de l'enseignant.";
+        echo "<script type='text/javascript'>
+            alert('Erreur lors de l\'ajout de l\'enseignant.');
+            window.location.href = 'ChefS.php';
+          </script>";
     }
 }

@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS Theme (
         'attribue',
         'termine'
     ) NOT NULL,
+    permission ENUM('oui', 'pas encore') DEFAULT 'pas encore',
     speciality_id INT,
     enseignant_id INT,
     FOREIGN KEY (speciality_id) REFERENCES Speciality(speciality_id),

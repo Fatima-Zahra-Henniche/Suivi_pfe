@@ -302,7 +302,7 @@ if (isset($_SESSION['chef_id'])) {
                     <select id="theme" name="theme">
                         <?php
                         require 'connect.php'; // S'assurer que la connexion est incluse ici pour les requêtes
-                        $query = "SELECT title_theme FROM theme WHERE status = 'attribue' AND speciality_id = '$speciality_id'";
+                        $query = "SELECT title_theme FROM theme WHERE status = 'attribue' AND permission = 'oui' AND speciality_id = '$speciality_id'";
                         $rows = mysqli_query($conn, $query);
                         if ($rows && mysqli_num_rows($rows) > 0) {
                             foreach ($rows as $row) {

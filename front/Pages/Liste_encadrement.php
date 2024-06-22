@@ -1,44 +1,3 @@
-<?php
-require 'connect.php';
-
-session_start();
-
-if (isset($_SESSION['ens_id'])) {
-    $ens_id = $_SESSION['ens_id'];
-    $type = 'enseignant';
-
-    $sql = "SELECT nom_enseignant, prenom_enseignant, 'Enseignant' AS job FROM enseignant WHERE type = ? AND enseignant_id = ?";
-    $stmt = $conn->prepare($sql);
-
-    if ($stmt) {
-        $stmt->bind_param("si", $type, $ens_id); // Bind type as string (s) and ens_id as integer (i)
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows > 0) {
-            // Output data of each row
-            while ($row = $result->fetch_assoc()) {
-                echo "<div class='toolbar'>";
-                echo "<span>" . $row["nom_enseignant"] . " " . $row["prenom_enseignant"] . "</span>";
-                echo "<span>" . $row["job"] . "</span>";
-                echo "<span class='logout'><a href='logout.php'>Déconnexion</a></span>";
-                echo "</div>";
-            }
-        } else {
-            echo "0 results";
-        }
-
-        $stmt->close();
-    } else {
-        echo "Failed to prepare the SQL statement: " . $conn->error;
-    }
-
-    $conn->close();
-} else {
-    echo "Enseignant ID not set in session.";
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -46,12 +5,11 @@ if (isset($_SESSION['ens_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <title>Les encadremant</title>
+    <title>Les encadrement</title>
     <style>
         .toolbar {
             display: grid;
             grid-template-columns: repeat(2, 1fr) auto;
-            /* Updated to accommodate the logout button */
             align-items: center;
             background-color: #BED1FC;
             padding: 10px;
@@ -61,18 +19,15 @@ if (isset($_SESSION['ens_id'])) {
             top: 0;
             left: 0;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            /* Added box shadow for better visibility */
         }
 
         .toolbar .logout {
             justify-self: end;
             padding-right: 15px;
-            /* Aligns the logout button to the end of the grid */
         }
 
         .toolbar a {
             color: #333;
-            /* Adjusted link color */
             text-decoration: none;
             padding: 5px 10px;
             border: 1px solid #333;
@@ -91,21 +46,58 @@ if (isset($_SESSION['ens_id'])) {
 
         .image-container {
             text-align: center;
-            /* Center the image horizontally */
         }
 
         .image-container img {
             width: 40%;
-            /* Adjust as needed */
             height: 55%;
             margin: 0 auto;
             margin-top: 40px;
-            /* Center the image horizontally */
         }
     </style>
 </head>
 
 <body>
+    <div class="toolbar">
+        <?php
+        require 'connect.php';
+
+        session_start();
+
+        if (isset($_SESSION['ens_id'])) {
+            $ens_id = $_SESSION['ens_id'];
+            $type = 'enseignant';
+
+            $sql = "SELECT nom_enseignant, prenom_enseignant, 'Enseignant' AS job FROM enseignant WHERE type = ? AND enseignant_id = ?";
+            $stmt = $conn->prepare($sql);
+
+            if ($stmt) {
+                $stmt->bind_param("si", $type, $ens_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+
+                if ($result->num_rows > 0) {
+                    while ($row = $result->fetch_assoc()) {
+                        echo "<span>" . $row["nom_enseignant"] . " " . $row["prenom_enseignant"] . "</span>";
+                        echo "<span>" . $row["job"] . "</span>";
+                        echo "<span class='logout'><a href='logout.php'>Déconnexion</a></span>";
+                    }
+                } else {
+                    echo "0 results";
+                }
+
+                $stmt->close();
+            } else {
+                echo "Failed to prepare the SQL statement: " . $conn->error;
+            }
+
+            $conn->close();
+        } else {
+            echo "Enseignant ID not set in session.";
+        }
+        ?>
+    </div>
+
     <div class="container">
         <h1>Liste Des Encadrement :</h1>
     </div>
@@ -149,6 +141,7 @@ if (isset($_SESSION['ens_id'])) {
         echo "<th scope='col'>Speciality</th>";
         echo "<th scope='col'>Taux Memoire</th>";
         echo "<th scope='col'>Taux Logiciel</th>";
+        echo "<th scope='col'>Actions</th>";
         echo "</tr>";
         echo "</thead>";
         echo "<tbody>";
@@ -167,6 +160,7 @@ if (isset($_SESSION['ens_id'])) {
             echo "<td><input type='hidden' name='binome_id' value='" . $row["id"] . "'></td>";
             echo "<td><input type='submit' value='Valider'></td>";
             echo "</form>";
+            echo "<td><button class='permetre-btn btn btn-light mb-2' data-binome-id='" . $row['id'] . "' data-theme-id='" . $row['theme_id'] . "'>Permet la soutenance</button></td>";
             echo "</tr>";
         }
         echo "</tbody>";
@@ -178,6 +172,32 @@ if (isset($_SESSION['ens_id'])) {
     $conn->close();
     ?>
 
+    <script>
+        document.querySelectorAll('.permetre-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const themeId = this.getAttribute('data-theme-id');
+
+                fetch('update_permission.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: 'theme_id=' + themeId
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        if (data === 'success') {
+                            alert('Permission updated successfully.');
+                        } else {
+                            alert('Failed to update permission.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            });
+        });
+    </script>
 </body>
 
 </html>

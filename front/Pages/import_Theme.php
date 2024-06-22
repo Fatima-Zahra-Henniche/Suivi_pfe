@@ -32,8 +32,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Exécution de la requête
     if ($stmt->execute()) {
-        echo "Le Sujet est inserè avec succès.";
+        echo "<script type='text/javascript'>
+            alert('Enseignant ajouté avec succès.');
+            window.location.href = 'ens.php';
+          </script>";
     } else {
-        echo "Erreur lors de l'ajout du sujet.";
+        echo "<script type='text/javascript'>
+            alert('Erreur lors de l\'ajout de l\'enseignant.');
+            window.location.href = 'ens.php';
+          </script>";
     }
 }
